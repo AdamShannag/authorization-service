@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+
+  #  start Postgres, and ensure that data is stored to a mounted volume
+  postgres:
+    image: 'postgres:14.2'
+    ports:
+      - "5432:5432"
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: fosite
+    volumes:
+      - ./db-data/postgres/:/var/lib/postgresql/data/
+
+# DSN: "host=postgres port=5432 user=postgres password=password dbname=fosite sslmode=disable timezone=UTC connect_timeout=5"
+
