@@ -3,16 +3,21 @@
 package ent
 
 import (
+	"authorization-service/ent/clients"
 	"authorization-service/ent/pkces"
 	"authorization-service/ent/predicate"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
+	"golang.org/x/text/language"
 )
 
 // PKCESUpdate is the builder for updating PKCES entities.
@@ -28,23 +33,128 @@ func (pu *PKCESUpdate) Where(ps ...predicate.PKCES) *PKCESUpdate {
 	return pu
 }
 
-// SetRequestIDID sets the "request_id" edge to the Request entity by ID.
-func (pu *PKCESUpdate) SetRequestIDID(id string) *PKCESUpdate {
-	pu.mutation.SetRequestIDID(id)
+// SetRequestID sets the "request_id" field.
+func (pu *PKCESUpdate) SetRequestID(s string) *PKCESUpdate {
+	pu.mutation.SetRequestID(s)
 	return pu
 }
 
-// SetNillableRequestIDID sets the "request_id" edge to the Request entity by ID if the given value is not nil.
-func (pu *PKCESUpdate) SetNillableRequestIDID(id *string) *PKCESUpdate {
-	if id != nil {
-		pu = pu.SetRequestIDID(*id)
+// SetRequestedAt sets the "requestedAt" field.
+func (pu *PKCESUpdate) SetRequestedAt(t time.Time) *PKCESUpdate {
+	pu.mutation.SetRequestedAt(t)
+	return pu
+}
+
+// SetScopes sets the "scopes" field.
+func (pu *PKCESUpdate) SetScopes(s []string) *PKCESUpdate {
+	pu.mutation.SetScopes(s)
+	return pu
+}
+
+// AppendScopes appends s to the "scopes" field.
+func (pu *PKCESUpdate) AppendScopes(s []string) *PKCESUpdate {
+	pu.mutation.AppendScopes(s)
+	return pu
+}
+
+// SetGrantedScopes sets the "granted_scopes" field.
+func (pu *PKCESUpdate) SetGrantedScopes(s []string) *PKCESUpdate {
+	pu.mutation.SetGrantedScopes(s)
+	return pu
+}
+
+// AppendGrantedScopes appends s to the "granted_scopes" field.
+func (pu *PKCESUpdate) AppendGrantedScopes(s []string) *PKCESUpdate {
+	pu.mutation.AppendGrantedScopes(s)
+	return pu
+}
+
+// SetRequestedAudience sets the "requested_audience" field.
+func (pu *PKCESUpdate) SetRequestedAudience(s []string) *PKCESUpdate {
+	pu.mutation.SetRequestedAudience(s)
+	return pu
+}
+
+// AppendRequestedAudience appends s to the "requested_audience" field.
+func (pu *PKCESUpdate) AppendRequestedAudience(s []string) *PKCESUpdate {
+	pu.mutation.AppendRequestedAudience(s)
+	return pu
+}
+
+// SetGrantedAudience sets the "granted_audience" field.
+func (pu *PKCESUpdate) SetGrantedAudience(s []string) *PKCESUpdate {
+	pu.mutation.SetGrantedAudience(s)
+	return pu
+}
+
+// AppendGrantedAudience appends s to the "granted_audience" field.
+func (pu *PKCESUpdate) AppendGrantedAudience(s []string) *PKCESUpdate {
+	pu.mutation.AppendGrantedAudience(s)
+	return pu
+}
+
+// SetForm sets the "form" field.
+func (pu *PKCESUpdate) SetForm(u url.Values) *PKCESUpdate {
+	pu.mutation.SetForm(u)
+	return pu
+}
+
+// SetLang sets the "lang" field.
+func (pu *PKCESUpdate) SetLang(l language.Tag) *PKCESUpdate {
+	pu.mutation.SetLang(l)
+	return pu
+}
+
+// SetNillableLang sets the "lang" field if the given value is not nil.
+func (pu *PKCESUpdate) SetNillableLang(l *language.Tag) *PKCESUpdate {
+	if l != nil {
+		pu.SetLang(*l)
 	}
 	return pu
 }
 
-// SetRequestID sets the "request_id" edge to the Request entity.
-func (pu *PKCESUpdate) SetRequestID(r *Request) *PKCESUpdate {
-	return pu.SetRequestIDID(r.ID)
+// ClearLang clears the value of the "lang" field.
+func (pu *PKCESUpdate) ClearLang() *PKCESUpdate {
+	pu.mutation.ClearLang()
+	return pu
+}
+
+// SetClientIDID sets the "client_id" edge to the Clients entity by ID.
+func (pu *PKCESUpdate) SetClientIDID(id string) *PKCESUpdate {
+	pu.mutation.SetClientIDID(id)
+	return pu
+}
+
+// SetNillableClientIDID sets the "client_id" edge to the Clients entity by ID if the given value is not nil.
+func (pu *PKCESUpdate) SetNillableClientIDID(id *string) *PKCESUpdate {
+	if id != nil {
+		pu = pu.SetClientIDID(*id)
+	}
+	return pu
+}
+
+// SetClientID sets the "client_id" edge to the Clients entity.
+func (pu *PKCESUpdate) SetClientID(c *Clients) *PKCESUpdate {
+	return pu.SetClientIDID(c.ID)
+}
+
+// SetSessionIDID sets the "session_id" edge to the Session entity by ID.
+func (pu *PKCESUpdate) SetSessionIDID(id string) *PKCESUpdate {
+	pu.mutation.SetSessionIDID(id)
+	return pu
+}
+
+// SetNillableSessionIDID sets the "session_id" edge to the Session entity by ID if the given value is not nil.
+func (pu *PKCESUpdate) SetNillableSessionIDID(id *string) *PKCESUpdate {
+	if id != nil {
+		pu = pu.SetSessionIDID(*id)
+	}
+	return pu
+}
+
+// SetSessionID sets the "session_id" edge to the Session entity.
+func (pu *PKCESUpdate) SetSessionID(s *Session) *PKCESUpdate {
+	return pu.SetSessionIDID(s.ID)
 }
 
 // Mutation returns the PKCESMutation object of the builder.
@@ -52,9 +162,15 @@ func (pu *PKCESUpdate) Mutation() *PKCESMutation {
 	return pu.mutation
 }
 
-// ClearRequestID clears the "request_id" edge to the Request entity.
-func (pu *PKCESUpdate) ClearRequestID() *PKCESUpdate {
-	pu.mutation.ClearRequestID()
+// ClearClientID clears the "client_id" edge to the Clients entity.
+func (pu *PKCESUpdate) ClearClientID() *PKCESUpdate {
+	pu.mutation.ClearClientID()
+	return pu
+}
+
+// ClearSessionID clears the "session_id" edge to the Session entity.
+func (pu *PKCESUpdate) ClearSessionID() *PKCESUpdate {
+	pu.mutation.ClearSessionID()
 	return pu
 }
 
@@ -94,28 +210,104 @@ func (pu *PKCESUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if pu.mutation.RequestIDCleared() {
+	if value, ok := pu.mutation.RequestID(); ok {
+		_spec.SetField(pkces.FieldRequestID, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.RequestedAt(); ok {
+		_spec.SetField(pkces.FieldRequestedAt, field.TypeTime, value)
+	}
+	if value, ok := pu.mutation.Scopes(); ok {
+		_spec.SetField(pkces.FieldScopes, field.TypeJSON, value)
+	}
+	if value, ok := pu.mutation.AppendedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, pkces.FieldScopes, value)
+		})
+	}
+	if value, ok := pu.mutation.GrantedScopes(); ok {
+		_spec.SetField(pkces.FieldGrantedScopes, field.TypeJSON, value)
+	}
+	if value, ok := pu.mutation.AppendedGrantedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, pkces.FieldGrantedScopes, value)
+		})
+	}
+	if value, ok := pu.mutation.RequestedAudience(); ok {
+		_spec.SetField(pkces.FieldRequestedAudience, field.TypeJSON, value)
+	}
+	if value, ok := pu.mutation.AppendedRequestedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, pkces.FieldRequestedAudience, value)
+		})
+	}
+	if value, ok := pu.mutation.GrantedAudience(); ok {
+		_spec.SetField(pkces.FieldGrantedAudience, field.TypeJSON, value)
+	}
+	if value, ok := pu.mutation.AppendedGrantedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, pkces.FieldGrantedAudience, value)
+		})
+	}
+	if value, ok := pu.mutation.Form(); ok {
+		_spec.SetField(pkces.FieldForm, field.TypeJSON, value)
+	}
+	if value, ok := pu.mutation.Lang(); ok {
+		_spec.SetField(pkces.FieldLang, field.TypeJSON, value)
+	}
+	if pu.mutation.LangCleared() {
+		_spec.ClearField(pkces.FieldLang, field.TypeJSON)
+	}
+	if pu.mutation.ClientIDCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   pkces.RequestIDTable,
-			Columns: []string{pkces.RequestIDColumn},
+			Table:   pkces.ClientIDTable,
+			Columns: []string{pkces.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.RequestIDIDs(); len(nodes) > 0 {
+	if nodes := pu.mutation.ClientIDIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   pkces.RequestIDTable,
-			Columns: []string{pkces.RequestIDColumn},
+			Table:   pkces.ClientIDTable,
+			Columns: []string{pkces.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.SessionIDCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   pkces.SessionIDTable,
+			Columns: []string{pkces.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.SessionIDIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   pkces.SessionIDTable,
+			Columns: []string{pkces.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -143,23 +335,128 @@ type PKCESUpdateOne struct {
 	mutation *PKCESMutation
 }
 
-// SetRequestIDID sets the "request_id" edge to the Request entity by ID.
-func (puo *PKCESUpdateOne) SetRequestIDID(id string) *PKCESUpdateOne {
-	puo.mutation.SetRequestIDID(id)
+// SetRequestID sets the "request_id" field.
+func (puo *PKCESUpdateOne) SetRequestID(s string) *PKCESUpdateOne {
+	puo.mutation.SetRequestID(s)
 	return puo
 }
 
-// SetNillableRequestIDID sets the "request_id" edge to the Request entity by ID if the given value is not nil.
-func (puo *PKCESUpdateOne) SetNillableRequestIDID(id *string) *PKCESUpdateOne {
-	if id != nil {
-		puo = puo.SetRequestIDID(*id)
+// SetRequestedAt sets the "requestedAt" field.
+func (puo *PKCESUpdateOne) SetRequestedAt(t time.Time) *PKCESUpdateOne {
+	puo.mutation.SetRequestedAt(t)
+	return puo
+}
+
+// SetScopes sets the "scopes" field.
+func (puo *PKCESUpdateOne) SetScopes(s []string) *PKCESUpdateOne {
+	puo.mutation.SetScopes(s)
+	return puo
+}
+
+// AppendScopes appends s to the "scopes" field.
+func (puo *PKCESUpdateOne) AppendScopes(s []string) *PKCESUpdateOne {
+	puo.mutation.AppendScopes(s)
+	return puo
+}
+
+// SetGrantedScopes sets the "granted_scopes" field.
+func (puo *PKCESUpdateOne) SetGrantedScopes(s []string) *PKCESUpdateOne {
+	puo.mutation.SetGrantedScopes(s)
+	return puo
+}
+
+// AppendGrantedScopes appends s to the "granted_scopes" field.
+func (puo *PKCESUpdateOne) AppendGrantedScopes(s []string) *PKCESUpdateOne {
+	puo.mutation.AppendGrantedScopes(s)
+	return puo
+}
+
+// SetRequestedAudience sets the "requested_audience" field.
+func (puo *PKCESUpdateOne) SetRequestedAudience(s []string) *PKCESUpdateOne {
+	puo.mutation.SetRequestedAudience(s)
+	return puo
+}
+
+// AppendRequestedAudience appends s to the "requested_audience" field.
+func (puo *PKCESUpdateOne) AppendRequestedAudience(s []string) *PKCESUpdateOne {
+	puo.mutation.AppendRequestedAudience(s)
+	return puo
+}
+
+// SetGrantedAudience sets the "granted_audience" field.
+func (puo *PKCESUpdateOne) SetGrantedAudience(s []string) *PKCESUpdateOne {
+	puo.mutation.SetGrantedAudience(s)
+	return puo
+}
+
+// AppendGrantedAudience appends s to the "granted_audience" field.
+func (puo *PKCESUpdateOne) AppendGrantedAudience(s []string) *PKCESUpdateOne {
+	puo.mutation.AppendGrantedAudience(s)
+	return puo
+}
+
+// SetForm sets the "form" field.
+func (puo *PKCESUpdateOne) SetForm(u url.Values) *PKCESUpdateOne {
+	puo.mutation.SetForm(u)
+	return puo
+}
+
+// SetLang sets the "lang" field.
+func (puo *PKCESUpdateOne) SetLang(l language.Tag) *PKCESUpdateOne {
+	puo.mutation.SetLang(l)
+	return puo
+}
+
+// SetNillableLang sets the "lang" field if the given value is not nil.
+func (puo *PKCESUpdateOne) SetNillableLang(l *language.Tag) *PKCESUpdateOne {
+	if l != nil {
+		puo.SetLang(*l)
 	}
 	return puo
 }
 
-// SetRequestID sets the "request_id" edge to the Request entity.
-func (puo *PKCESUpdateOne) SetRequestID(r *Request) *PKCESUpdateOne {
-	return puo.SetRequestIDID(r.ID)
+// ClearLang clears the value of the "lang" field.
+func (puo *PKCESUpdateOne) ClearLang() *PKCESUpdateOne {
+	puo.mutation.ClearLang()
+	return puo
+}
+
+// SetClientIDID sets the "client_id" edge to the Clients entity by ID.
+func (puo *PKCESUpdateOne) SetClientIDID(id string) *PKCESUpdateOne {
+	puo.mutation.SetClientIDID(id)
+	return puo
+}
+
+// SetNillableClientIDID sets the "client_id" edge to the Clients entity by ID if the given value is not nil.
+func (puo *PKCESUpdateOne) SetNillableClientIDID(id *string) *PKCESUpdateOne {
+	if id != nil {
+		puo = puo.SetClientIDID(*id)
+	}
+	return puo
+}
+
+// SetClientID sets the "client_id" edge to the Clients entity.
+func (puo *PKCESUpdateOne) SetClientID(c *Clients) *PKCESUpdateOne {
+	return puo.SetClientIDID(c.ID)
+}
+
+// SetSessionIDID sets the "session_id" edge to the Session entity by ID.
+func (puo *PKCESUpdateOne) SetSessionIDID(id string) *PKCESUpdateOne {
+	puo.mutation.SetSessionIDID(id)
+	return puo
+}
+
+// SetNillableSessionIDID sets the "session_id" edge to the Session entity by ID if the given value is not nil.
+func (puo *PKCESUpdateOne) SetNillableSessionIDID(id *string) *PKCESUpdateOne {
+	if id != nil {
+		puo = puo.SetSessionIDID(*id)
+	}
+	return puo
+}
+
+// SetSessionID sets the "session_id" edge to the Session entity.
+func (puo *PKCESUpdateOne) SetSessionID(s *Session) *PKCESUpdateOne {
+	return puo.SetSessionIDID(s.ID)
 }
 
 // Mutation returns the PKCESMutation object of the builder.
@@ -167,9 +464,15 @@ func (puo *PKCESUpdateOne) Mutation() *PKCESMutation {
 	return puo.mutation
 }
 
-// ClearRequestID clears the "request_id" edge to the Request entity.
-func (puo *PKCESUpdateOne) ClearRequestID() *PKCESUpdateOne {
-	puo.mutation.ClearRequestID()
+// ClearClientID clears the "client_id" edge to the Clients entity.
+func (puo *PKCESUpdateOne) ClearClientID() *PKCESUpdateOne {
+	puo.mutation.ClearClientID()
+	return puo
+}
+
+// ClearSessionID clears the "session_id" edge to the Session entity.
+func (puo *PKCESUpdateOne) ClearSessionID() *PKCESUpdateOne {
+	puo.mutation.ClearSessionID()
 	return puo
 }
 
@@ -239,28 +542,104 @@ func (puo *PKCESUpdateOne) sqlSave(ctx context.Context) (_node *PKCES, err error
 			}
 		}
 	}
-	if puo.mutation.RequestIDCleared() {
+	if value, ok := puo.mutation.RequestID(); ok {
+		_spec.SetField(pkces.FieldRequestID, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.RequestedAt(); ok {
+		_spec.SetField(pkces.FieldRequestedAt, field.TypeTime, value)
+	}
+	if value, ok := puo.mutation.Scopes(); ok {
+		_spec.SetField(pkces.FieldScopes, field.TypeJSON, value)
+	}
+	if value, ok := puo.mutation.AppendedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, pkces.FieldScopes, value)
+		})
+	}
+	if value, ok := puo.mutation.GrantedScopes(); ok {
+		_spec.SetField(pkces.FieldGrantedScopes, field.TypeJSON, value)
+	}
+	if value, ok := puo.mutation.AppendedGrantedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, pkces.FieldGrantedScopes, value)
+		})
+	}
+	if value, ok := puo.mutation.RequestedAudience(); ok {
+		_spec.SetField(pkces.FieldRequestedAudience, field.TypeJSON, value)
+	}
+	if value, ok := puo.mutation.AppendedRequestedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, pkces.FieldRequestedAudience, value)
+		})
+	}
+	if value, ok := puo.mutation.GrantedAudience(); ok {
+		_spec.SetField(pkces.FieldGrantedAudience, field.TypeJSON, value)
+	}
+	if value, ok := puo.mutation.AppendedGrantedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, pkces.FieldGrantedAudience, value)
+		})
+	}
+	if value, ok := puo.mutation.Form(); ok {
+		_spec.SetField(pkces.FieldForm, field.TypeJSON, value)
+	}
+	if value, ok := puo.mutation.Lang(); ok {
+		_spec.SetField(pkces.FieldLang, field.TypeJSON, value)
+	}
+	if puo.mutation.LangCleared() {
+		_spec.ClearField(pkces.FieldLang, field.TypeJSON)
+	}
+	if puo.mutation.ClientIDCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   pkces.RequestIDTable,
-			Columns: []string{pkces.RequestIDColumn},
+			Table:   pkces.ClientIDTable,
+			Columns: []string{pkces.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.RequestIDIDs(); len(nodes) > 0 {
+	if nodes := puo.mutation.ClientIDIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   pkces.RequestIDTable,
-			Columns: []string{pkces.RequestIDColumn},
+			Table:   pkces.ClientIDTable,
+			Columns: []string{pkces.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.SessionIDCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   pkces.SessionIDTable,
+			Columns: []string{pkces.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.SessionIDIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   pkces.SessionIDTable,
+			Columns: []string{pkces.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

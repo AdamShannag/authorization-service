@@ -19,7 +19,6 @@ import (
 	"authorization-service/ent/pkces"
 	"authorization-service/ent/publickeyscopes"
 	"authorization-service/ent/refreshtokens"
-	"authorization-service/ent/request"
 	"authorization-service/ent/session"
 	"authorization-service/ent/subjectpublickeys"
 	"authorization-service/ent/user"
@@ -53,8 +52,6 @@ type Client struct {
 	PublicKeyScopes *PublicKeyScopesClient
 	// RefreshTokens is the client for interacting with the RefreshTokens builders.
 	RefreshTokens *RefreshTokensClient
-	// Request is the client for interacting with the Request builders.
-	Request *RequestClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// SubjectPublicKeys is the client for interacting with the SubjectPublicKeys builders.
@@ -83,7 +80,6 @@ func (c *Client) init() {
 	c.PKCES = NewPKCESClient(c.config)
 	c.PublicKeyScopes = NewPublicKeyScopesClient(c.config)
 	c.RefreshTokens = NewRefreshTokensClient(c.config)
-	c.Request = NewRequestClient(c.config)
 	c.Session = NewSessionClient(c.config)
 	c.SubjectPublicKeys = NewSubjectPublicKeysClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -178,7 +174,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PKCES:             NewPKCESClient(cfg),
 		PublicKeyScopes:   NewPublicKeyScopesClient(cfg),
 		RefreshTokens:     NewRefreshTokensClient(cfg),
-		Request:           NewRequestClient(cfg),
 		Session:           NewSessionClient(cfg),
 		SubjectPublicKeys: NewSubjectPublicKeysClient(cfg),
 		User:              NewUserClient(cfg),
@@ -210,7 +205,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PKCES:             NewPKCESClient(cfg),
 		PublicKeyScopes:   NewPublicKeyScopesClient(cfg),
 		RefreshTokens:     NewRefreshTokensClient(cfg),
-		Request:           NewRequestClient(cfg),
 		Session:           NewSessionClient(cfg),
 		SubjectPublicKeys: NewSubjectPublicKeysClient(cfg),
 		User:              NewUserClient(cfg),
@@ -244,8 +238,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AccessTokens, c.AuthorizeCodes, c.BlacklistedJTIs, c.Clients, c.IDSessions,
-		c.IssuerPublicKeys, c.PKCES, c.PublicKeyScopes, c.RefreshTokens, c.Request,
-		c.Session, c.SubjectPublicKeys, c.User,
+		c.IssuerPublicKeys, c.PKCES, c.PublicKeyScopes, c.RefreshTokens, c.Session,
+		c.SubjectPublicKeys, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -256,8 +250,8 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AccessTokens, c.AuthorizeCodes, c.BlacklistedJTIs, c.Clients, c.IDSessions,
-		c.IssuerPublicKeys, c.PKCES, c.PublicKeyScopes, c.RefreshTokens, c.Request,
-		c.Session, c.SubjectPublicKeys, c.User,
+		c.IssuerPublicKeys, c.PKCES, c.PublicKeyScopes, c.RefreshTokens, c.Session,
+		c.SubjectPublicKeys, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -284,8 +278,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PublicKeyScopes.mutate(ctx, m)
 	case *RefreshTokensMutation:
 		return c.RefreshTokens.mutate(ctx, m)
-	case *RequestMutation:
-		return c.Request.mutate(ctx, m)
 	case *SessionMutation:
 		return c.Session.mutate(ctx, m)
 	case *SubjectPublicKeysMutation:
@@ -390,15 +382,31 @@ func (c *AccessTokensClient) GetX(ctx context.Context, id string) *AccessTokens 
 	return obj
 }
 
-// QueryRequestID queries the request_id edge of a AccessTokens.
-func (c *AccessTokensClient) QueryRequestID(at *AccessTokens) *RequestQuery {
-	query := (&RequestClient{config: c.config}).Query()
+// QueryClientID queries the client_id edge of a AccessTokens.
+func (c *AccessTokensClient) QueryClientID(at *AccessTokens) *ClientsQuery {
+	query := (&ClientsClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := at.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(accesstokens.Table, accesstokens.FieldID, id),
-			sqlgraph.To(request.Table, request.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, accesstokens.RequestIDTable, accesstokens.RequestIDColumn),
+			sqlgraph.To(clients.Table, clients.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, accesstokens.ClientIDTable, accesstokens.ClientIDColumn),
+		)
+		fromV = sqlgraph.Neighbors(at.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySessionID queries the session_id edge of a AccessTokens.
+func (c *AccessTokensClient) QuerySessionID(at *AccessTokens) *SessionQuery {
+	query := (&SessionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := at.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(accesstokens.Table, accesstokens.FieldID, id),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, accesstokens.SessionIDTable, accesstokens.SessionIDColumn),
 		)
 		fromV = sqlgraph.Neighbors(at.driver.Dialect(), step)
 		return fromV, nil
@@ -524,15 +532,31 @@ func (c *AuthorizeCodesClient) GetX(ctx context.Context, id string) *AuthorizeCo
 	return obj
 }
 
-// QueryRequestID queries the request_id edge of a AuthorizeCodes.
-func (c *AuthorizeCodesClient) QueryRequestID(ac *AuthorizeCodes) *RequestQuery {
-	query := (&RequestClient{config: c.config}).Query()
+// QueryClientID queries the client_id edge of a AuthorizeCodes.
+func (c *AuthorizeCodesClient) QueryClientID(ac *AuthorizeCodes) *ClientsQuery {
+	query := (&ClientsClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ac.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(authorizecodes.Table, authorizecodes.FieldID, id),
-			sqlgraph.To(request.Table, request.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, authorizecodes.RequestIDTable, authorizecodes.RequestIDColumn),
+			sqlgraph.To(clients.Table, clients.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, authorizecodes.ClientIDTable, authorizecodes.ClientIDColumn),
+		)
+		fromV = sqlgraph.Neighbors(ac.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySessionID queries the session_id edge of a AuthorizeCodes.
+func (c *AuthorizeCodesClient) QuerySessionID(ac *AuthorizeCodes) *SessionQuery {
+	query := (&SessionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ac.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(authorizecodes.Table, authorizecodes.FieldID, id),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, authorizecodes.SessionIDTable, authorizecodes.SessionIDColumn),
 		)
 		fromV = sqlgraph.Neighbors(ac.driver.Dialect(), step)
 		return fromV, nil
@@ -776,15 +800,79 @@ func (c *ClientsClient) GetX(ctx context.Context, id string) *Clients {
 	return obj
 }
 
-// QueryRequests queries the requests edge of a Clients.
-func (c *ClientsClient) QueryRequests(cl *Clients) *RequestQuery {
-	query := (&RequestClient{config: c.config}).Query()
+// QueryAccessToken queries the access_token edge of a Clients.
+func (c *ClientsClient) QueryAccessToken(cl *Clients) *AccessTokensQuery {
+	query := (&AccessTokensClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := cl.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(clients.Table, clients.FieldID, id),
-			sqlgraph.To(request.Table, request.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, clients.RequestsTable, clients.RequestsColumn),
+			sqlgraph.To(accesstokens.Table, accesstokens.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clients.AccessTokenTable, clients.AccessTokenColumn),
+		)
+		fromV = sqlgraph.Neighbors(cl.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAuthorizeCode queries the authorize_code edge of a Clients.
+func (c *ClientsClient) QueryAuthorizeCode(cl *Clients) *AuthorizeCodesQuery {
+	query := (&AuthorizeCodesClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cl.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clients.Table, clients.FieldID, id),
+			sqlgraph.To(authorizecodes.Table, authorizecodes.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clients.AuthorizeCodeTable, clients.AuthorizeCodeColumn),
+		)
+		fromV = sqlgraph.Neighbors(cl.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRefreshToken queries the refresh_token edge of a Clients.
+func (c *ClientsClient) QueryRefreshToken(cl *Clients) *RefreshTokensQuery {
+	query := (&RefreshTokensClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cl.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clients.Table, clients.FieldID, id),
+			sqlgraph.To(refreshtokens.Table, refreshtokens.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clients.RefreshTokenTable, clients.RefreshTokenColumn),
+		)
+		fromV = sqlgraph.Neighbors(cl.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIDSession queries the id_session edge of a Clients.
+func (c *ClientsClient) QueryIDSession(cl *Clients) *IDSessionsQuery {
+	query := (&IDSessionsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cl.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clients.Table, clients.FieldID, id),
+			sqlgraph.To(idsessions.Table, idsessions.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clients.IDSessionTable, clients.IDSessionColumn),
+		)
+		fromV = sqlgraph.Neighbors(cl.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPkce queries the pkce edge of a Clients.
+func (c *ClientsClient) QueryPkce(cl *Clients) *PKCESQuery {
+	query := (&PKCESClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cl.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clients.Table, clients.FieldID, id),
+			sqlgraph.To(pkces.Table, pkces.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clients.PkceTable, clients.PkceColumn),
 		)
 		fromV = sqlgraph.Neighbors(cl.driver.Dialect(), step)
 		return fromV, nil
@@ -910,15 +998,31 @@ func (c *IDSessionsClient) GetX(ctx context.Context, id string) *IDSessions {
 	return obj
 }
 
-// QueryRequestID queries the request_id edge of a IDSessions.
-func (c *IDSessionsClient) QueryRequestID(is *IDSessions) *RequestQuery {
-	query := (&RequestClient{config: c.config}).Query()
+// QueryClientID queries the client_id edge of a IDSessions.
+func (c *IDSessionsClient) QueryClientID(is *IDSessions) *ClientsQuery {
+	query := (&ClientsClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := is.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(idsessions.Table, idsessions.FieldID, id),
-			sqlgraph.To(request.Table, request.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, idsessions.RequestIDTable, idsessions.RequestIDColumn),
+			sqlgraph.To(clients.Table, clients.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, idsessions.ClientIDTable, idsessions.ClientIDColumn),
+		)
+		fromV = sqlgraph.Neighbors(is.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySessionID queries the session_id edge of a IDSessions.
+func (c *IDSessionsClient) QuerySessionID(is *IDSessions) *SessionQuery {
+	query := (&SessionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := is.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(idsessions.Table, idsessions.FieldID, id),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, idsessions.SessionIDTable, idsessions.SessionIDColumn),
 		)
 		fromV = sqlgraph.Neighbors(is.driver.Dialect(), step)
 		return fromV, nil
@@ -1178,15 +1282,31 @@ func (c *PKCESClient) GetX(ctx context.Context, id string) *PKCES {
 	return obj
 }
 
-// QueryRequestID queries the request_id edge of a PKCES.
-func (c *PKCESClient) QueryRequestID(pk *PKCES) *RequestQuery {
-	query := (&RequestClient{config: c.config}).Query()
+// QueryClientID queries the client_id edge of a PKCES.
+func (c *PKCESClient) QueryClientID(pk *PKCES) *ClientsQuery {
+	query := (&ClientsClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := pk.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(pkces.Table, pkces.FieldID, id),
-			sqlgraph.To(request.Table, request.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, pkces.RequestIDTable, pkces.RequestIDColumn),
+			sqlgraph.To(clients.Table, clients.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, pkces.ClientIDTable, pkces.ClientIDColumn),
+		)
+		fromV = sqlgraph.Neighbors(pk.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySessionID queries the session_id edge of a PKCES.
+func (c *PKCESClient) QuerySessionID(pk *PKCES) *SessionQuery {
+	query := (&SessionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pk.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pkces.Table, pkces.FieldID, id),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, pkces.SessionIDTable, pkces.SessionIDColumn),
 		)
 		fromV = sqlgraph.Neighbors(pk.driver.Dialect(), step)
 		return fromV, nil
@@ -1446,15 +1566,31 @@ func (c *RefreshTokensClient) GetX(ctx context.Context, id string) *RefreshToken
 	return obj
 }
 
-// QueryRequestID queries the request_id edge of a RefreshTokens.
-func (c *RefreshTokensClient) QueryRequestID(rt *RefreshTokens) *RequestQuery {
-	query := (&RequestClient{config: c.config}).Query()
+// QueryClientID queries the client_id edge of a RefreshTokens.
+func (c *RefreshTokensClient) QueryClientID(rt *RefreshTokens) *ClientsQuery {
+	query := (&ClientsClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := rt.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(refreshtokens.Table, refreshtokens.FieldID, id),
-			sqlgraph.To(request.Table, request.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, refreshtokens.RequestIDTable, refreshtokens.RequestIDColumn),
+			sqlgraph.To(clients.Table, clients.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, refreshtokens.ClientIDTable, refreshtokens.ClientIDColumn),
+		)
+		fromV = sqlgraph.Neighbors(rt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySessionID queries the session_id edge of a RefreshTokens.
+func (c *RefreshTokensClient) QuerySessionID(rt *RefreshTokens) *SessionQuery {
+	query := (&SessionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(refreshtokens.Table, refreshtokens.FieldID, id),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, refreshtokens.SessionIDTable, refreshtokens.SessionIDColumn),
 		)
 		fromV = sqlgraph.Neighbors(rt.driver.Dialect(), step)
 		return fromV, nil
@@ -1484,236 +1620,6 @@ func (c *RefreshTokensClient) mutate(ctx context.Context, m *RefreshTokensMutati
 		return (&RefreshTokensDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown RefreshTokens mutation op: %q", m.Op())
-	}
-}
-
-// RequestClient is a client for the Request schema.
-type RequestClient struct {
-	config
-}
-
-// NewRequestClient returns a client for the Request from the given config.
-func NewRequestClient(c config) *RequestClient {
-	return &RequestClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `request.Hooks(f(g(h())))`.
-func (c *RequestClient) Use(hooks ...Hook) {
-	c.hooks.Request = append(c.hooks.Request, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `request.Intercept(f(g(h())))`.
-func (c *RequestClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Request = append(c.inters.Request, interceptors...)
-}
-
-// Create returns a builder for creating a Request entity.
-func (c *RequestClient) Create() *RequestCreate {
-	mutation := newRequestMutation(c.config, OpCreate)
-	return &RequestCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Request entities.
-func (c *RequestClient) CreateBulk(builders ...*RequestCreate) *RequestCreateBulk {
-	return &RequestCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Request.
-func (c *RequestClient) Update() *RequestUpdate {
-	mutation := newRequestMutation(c.config, OpUpdate)
-	return &RequestUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *RequestClient) UpdateOne(r *Request) *RequestUpdateOne {
-	mutation := newRequestMutation(c.config, OpUpdateOne, withRequest(r))
-	return &RequestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *RequestClient) UpdateOneID(id string) *RequestUpdateOne {
-	mutation := newRequestMutation(c.config, OpUpdateOne, withRequestID(id))
-	return &RequestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Request.
-func (c *RequestClient) Delete() *RequestDelete {
-	mutation := newRequestMutation(c.config, OpDelete)
-	return &RequestDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *RequestClient) DeleteOne(r *Request) *RequestDeleteOne {
-	return c.DeleteOneID(r.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *RequestClient) DeleteOneID(id string) *RequestDeleteOne {
-	builder := c.Delete().Where(request.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &RequestDeleteOne{builder}
-}
-
-// Query returns a query builder for Request.
-func (c *RequestClient) Query() *RequestQuery {
-	return &RequestQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeRequest},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Request entity by its id.
-func (c *RequestClient) Get(ctx context.Context, id string) (*Request, error) {
-	return c.Query().Where(request.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *RequestClient) GetX(ctx context.Context, id string) *Request {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryClientID queries the client_id edge of a Request.
-func (c *RequestClient) QueryClientID(r *Request) *ClientsQuery {
-	query := (&ClientsClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := r.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(request.Table, request.FieldID, id),
-			sqlgraph.To(clients.Table, clients.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, request.ClientIDTable, request.ClientIDColumn),
-		)
-		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QuerySessionID queries the session_id edge of a Request.
-func (c *RequestClient) QuerySessionID(r *Request) *SessionQuery {
-	query := (&SessionClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := r.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(request.Table, request.FieldID, id),
-			sqlgraph.To(session.Table, session.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, request.SessionIDTable, request.SessionIDColumn),
-		)
-		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryRefreshToken queries the refresh_token edge of a Request.
-func (c *RequestClient) QueryRefreshToken(r *Request) *RefreshTokensQuery {
-	query := (&RefreshTokensClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := r.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(request.Table, request.FieldID, id),
-			sqlgraph.To(refreshtokens.Table, refreshtokens.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, request.RefreshTokenTable, request.RefreshTokenColumn),
-		)
-		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryAuthorizeCode queries the authorize_code edge of a Request.
-func (c *RequestClient) QueryAuthorizeCode(r *Request) *AuthorizeCodesQuery {
-	query := (&AuthorizeCodesClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := r.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(request.Table, request.FieldID, id),
-			sqlgraph.To(authorizecodes.Table, authorizecodes.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, request.AuthorizeCodeTable, request.AuthorizeCodeColumn),
-		)
-		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryAccessToken queries the access_token edge of a Request.
-func (c *RequestClient) QueryAccessToken(r *Request) *AccessTokensQuery {
-	query := (&AccessTokensClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := r.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(request.Table, request.FieldID, id),
-			sqlgraph.To(accesstokens.Table, accesstokens.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, request.AccessTokenTable, request.AccessTokenColumn),
-		)
-		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryIDSession queries the id_session edge of a Request.
-func (c *RequestClient) QueryIDSession(r *Request) *IDSessionsQuery {
-	query := (&IDSessionsClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := r.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(request.Table, request.FieldID, id),
-			sqlgraph.To(idsessions.Table, idsessions.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, request.IDSessionTable, request.IDSessionColumn),
-		)
-		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryPkce queries the pkce edge of a Request.
-func (c *RequestClient) QueryPkce(r *Request) *PKCESQuery {
-	query := (&PKCESClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := r.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(request.Table, request.FieldID, id),
-			sqlgraph.To(pkces.Table, pkces.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, request.PkceTable, request.PkceColumn),
-		)
-		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *RequestClient) Hooks() []Hook {
-	return c.hooks.Request
-}
-
-// Interceptors returns the client interceptors.
-func (c *RequestClient) Interceptors() []Interceptor {
-	return c.inters.Request
-}
-
-func (c *RequestClient) mutate(ctx context.Context, m *RequestMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&RequestCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&RequestUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&RequestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&RequestDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown Request mutation op: %q", m.Op())
 	}
 }
 
@@ -1810,15 +1716,79 @@ func (c *SessionClient) GetX(ctx context.Context, id string) *Session {
 	return obj
 }
 
-// QueryRequests queries the requests edge of a Session.
-func (c *SessionClient) QueryRequests(s *Session) *RequestQuery {
-	query := (&RequestClient{config: c.config}).Query()
+// QueryAccessToken queries the access_token edge of a Session.
+func (c *SessionClient) QueryAccessToken(s *Session) *AccessTokensQuery {
+	query := (&AccessTokensClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := s.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(session.Table, session.FieldID, id),
-			sqlgraph.To(request.Table, request.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, session.RequestsTable, session.RequestsColumn),
+			sqlgraph.To(accesstokens.Table, accesstokens.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, session.AccessTokenTable, session.AccessTokenColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAuthorizeCode queries the authorize_code edge of a Session.
+func (c *SessionClient) QueryAuthorizeCode(s *Session) *AuthorizeCodesQuery {
+	query := (&AuthorizeCodesClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(session.Table, session.FieldID, id),
+			sqlgraph.To(authorizecodes.Table, authorizecodes.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, session.AuthorizeCodeTable, session.AuthorizeCodeColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRefreshToken queries the refresh_token edge of a Session.
+func (c *SessionClient) QueryRefreshToken(s *Session) *RefreshTokensQuery {
+	query := (&RefreshTokensClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(session.Table, session.FieldID, id),
+			sqlgraph.To(refreshtokens.Table, refreshtokens.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, session.RefreshTokenTable, session.RefreshTokenColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIDSession queries the id_session edge of a Session.
+func (c *SessionClient) QueryIDSession(s *Session) *IDSessionsQuery {
+	query := (&IDSessionsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(session.Table, session.FieldID, id),
+			sqlgraph.To(idsessions.Table, idsessions.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, session.IDSessionTable, session.IDSessionColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPkce queries the pkce edge of a Session.
+func (c *SessionClient) QueryPkce(s *Session) *PKCESQuery {
+	query := (&PKCESClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(session.Table, session.FieldID, id),
+			sqlgraph.To(pkces.Table, pkces.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, session.PkceTable, session.PkceColumn),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil
@@ -2047,7 +2017,7 @@ func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
+func (c *UserClient) UpdateOneID(id string) *UserUpdateOne {
 	mutation := newUserMutation(c.config, OpUpdateOne, withUserID(id))
 	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -2064,7 +2034,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
+func (c *UserClient) DeleteOneID(id string) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -2081,12 +2051,12 @@ func (c *UserClient) Query() *UserQuery {
 }
 
 // Get returns a User entity by its id.
-func (c *UserClient) Get(ctx context.Context, id int) (*User, error) {
+func (c *UserClient) Get(ctx context.Context, id string) (*User, error) {
 	return c.Query().Where(user.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *UserClient) GetX(ctx context.Context, id int) *User {
+func (c *UserClient) GetX(ctx context.Context, id string) *User {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -2123,12 +2093,12 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		AccessTokens, AuthorizeCodes, BlacklistedJTIs, Clients, IDSessions,
-		IssuerPublicKeys, PKCES, PublicKeyScopes, RefreshTokens, Request, Session,
+		IssuerPublicKeys, PKCES, PublicKeyScopes, RefreshTokens, Session,
 		SubjectPublicKeys, User []ent.Hook
 	}
 	inters struct {
 		AccessTokens, AuthorizeCodes, BlacklistedJTIs, Clients, IDSessions,
-		IssuerPublicKeys, PKCES, PublicKeyScopes, RefreshTokens, Request, Session,
+		IssuerPublicKeys, PKCES, PublicKeyScopes, RefreshTokens, Session,
 		SubjectPublicKeys, User []ent.Interceptor
 	}
 )

@@ -4,8 +4,9 @@ package ent
 
 import (
 	"authorization-service/ent/accesstokens"
+	"authorization-service/ent/clients"
 	"authorization-service/ent/predicate"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
 	"context"
 	"fmt"
 	"math"
@@ -22,7 +23,8 @@ type AccessTokensQuery struct {
 	order         []accesstokens.OrderOption
 	inters        []Interceptor
 	predicates    []predicate.AccessTokens
-	withRequestID *RequestQuery
+	withClientID  *ClientsQuery
+	withSessionID *SessionQuery
 	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -60,9 +62,9 @@ func (atq *AccessTokensQuery) Order(o ...accesstokens.OrderOption) *AccessTokens
 	return atq
 }
 
-// QueryRequestID chains the current query on the "request_id" edge.
-func (atq *AccessTokensQuery) QueryRequestID() *RequestQuery {
-	query := (&RequestClient{config: atq.config}).Query()
+// QueryClientID chains the current query on the "client_id" edge.
+func (atq *AccessTokensQuery) QueryClientID() *ClientsQuery {
+	query := (&ClientsClient{config: atq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := atq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -73,8 +75,30 @@ func (atq *AccessTokensQuery) QueryRequestID() *RequestQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(accesstokens.Table, accesstokens.FieldID, selector),
-			sqlgraph.To(request.Table, request.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, accesstokens.RequestIDTable, accesstokens.RequestIDColumn),
+			sqlgraph.To(clients.Table, clients.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, accesstokens.ClientIDTable, accesstokens.ClientIDColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(atq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySessionID chains the current query on the "session_id" edge.
+func (atq *AccessTokensQuery) QuerySessionID() *SessionQuery {
+	query := (&SessionClient{config: atq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := atq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := atq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(accesstokens.Table, accesstokens.FieldID, selector),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, accesstokens.SessionIDTable, accesstokens.SessionIDColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(atq.driver.Dialect(), step)
 		return fromU, nil
@@ -274,26 +298,50 @@ func (atq *AccessTokensQuery) Clone() *AccessTokensQuery {
 		order:         append([]accesstokens.OrderOption{}, atq.order...),
 		inters:        append([]Interceptor{}, atq.inters...),
 		predicates:    append([]predicate.AccessTokens{}, atq.predicates...),
-		withRequestID: atq.withRequestID.Clone(),
+		withClientID:  atq.withClientID.Clone(),
+		withSessionID: atq.withSessionID.Clone(),
 		// clone intermediate query.
 		sql:  atq.sql.Clone(),
 		path: atq.path,
 	}
 }
 
-// WithRequestID tells the query-builder to eager-load the nodes that are connected to
-// the "request_id" edge. The optional arguments are used to configure the query builder of the edge.
-func (atq *AccessTokensQuery) WithRequestID(opts ...func(*RequestQuery)) *AccessTokensQuery {
-	query := (&RequestClient{config: atq.config}).Query()
+// WithClientID tells the query-builder to eager-load the nodes that are connected to
+// the "client_id" edge. The optional arguments are used to configure the query builder of the edge.
+func (atq *AccessTokensQuery) WithClientID(opts ...func(*ClientsQuery)) *AccessTokensQuery {
+	query := (&ClientsClient{config: atq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	atq.withRequestID = query
+	atq.withClientID = query
+	return atq
+}
+
+// WithSessionID tells the query-builder to eager-load the nodes that are connected to
+// the "session_id" edge. The optional arguments are used to configure the query builder of the edge.
+func (atq *AccessTokensQuery) WithSessionID(opts ...func(*SessionQuery)) *AccessTokensQuery {
+	query := (&SessionClient{config: atq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	atq.withSessionID = query
 	return atq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		RequestID string `json:"request_id,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.AccessTokens.Query().
+//		GroupBy(accesstokens.FieldRequestID).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
 func (atq *AccessTokensQuery) GroupBy(field string, fields ...string) *AccessTokensGroupBy {
 	atq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &AccessTokensGroupBy{build: atq}
@@ -305,6 +353,16 @@ func (atq *AccessTokensQuery) GroupBy(field string, fields ...string) *AccessTok
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
+//
+// Example:
+//
+//	var v []struct {
+//		RequestID string `json:"request_id,omitempty"`
+//	}
+//
+//	client.AccessTokens.Query().
+//		Select(accesstokens.FieldRequestID).
+//		Scan(ctx, &v)
 func (atq *AccessTokensQuery) Select(fields ...string) *AccessTokensSelect {
 	atq.ctx.Fields = append(atq.ctx.Fields, fields...)
 	sbuild := &AccessTokensSelect{AccessTokensQuery: atq}
@@ -349,11 +407,12 @@ func (atq *AccessTokensQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 		nodes       = []*AccessTokens{}
 		withFKs     = atq.withFKs
 		_spec       = atq.querySpec()
-		loadedTypes = [1]bool{
-			atq.withRequestID != nil,
+		loadedTypes = [2]bool{
+			atq.withClientID != nil,
+			atq.withSessionID != nil,
 		}
 	)
-	if atq.withRequestID != nil {
+	if atq.withClientID != nil || atq.withSessionID != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -377,23 +436,29 @@ func (atq *AccessTokensQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := atq.withRequestID; query != nil {
-		if err := atq.loadRequestID(ctx, query, nodes, nil,
-			func(n *AccessTokens, e *Request) { n.Edges.RequestID = e }); err != nil {
+	if query := atq.withClientID; query != nil {
+		if err := atq.loadClientID(ctx, query, nodes, nil,
+			func(n *AccessTokens, e *Clients) { n.Edges.ClientID = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := atq.withSessionID; query != nil {
+		if err := atq.loadSessionID(ctx, query, nodes, nil,
+			func(n *AccessTokens, e *Session) { n.Edges.SessionID = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (atq *AccessTokensQuery) loadRequestID(ctx context.Context, query *RequestQuery, nodes []*AccessTokens, init func(*AccessTokens), assign func(*AccessTokens, *Request)) error {
+func (atq *AccessTokensQuery) loadClientID(ctx context.Context, query *ClientsQuery, nodes []*AccessTokens, init func(*AccessTokens), assign func(*AccessTokens, *Clients)) error {
 	ids := make([]string, 0, len(nodes))
 	nodeids := make(map[string][]*AccessTokens)
 	for i := range nodes {
-		if nodes[i].request_access_token == nil {
+		if nodes[i].clients_access_token == nil {
 			continue
 		}
-		fk := *nodes[i].request_access_token
+		fk := *nodes[i].clients_access_token
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -402,7 +467,7 @@ func (atq *AccessTokensQuery) loadRequestID(ctx context.Context, query *RequestQ
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(request.IDIn(ids...))
+	query.Where(clients.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -410,7 +475,39 @@ func (atq *AccessTokensQuery) loadRequestID(ctx context.Context, query *RequestQ
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "request_access_token" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "clients_access_token" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (atq *AccessTokensQuery) loadSessionID(ctx context.Context, query *SessionQuery, nodes []*AccessTokens, init func(*AccessTokens), assign func(*AccessTokens, *Session)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*AccessTokens)
+	for i := range nodes {
+		if nodes[i].session_access_token == nil {
+			continue
+		}
+		fk := *nodes[i].session_access_token
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(session.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "session_access_token" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

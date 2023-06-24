@@ -3,9 +3,10 @@
 package ent
 
 import (
+	"authorization-service/ent/clients"
 	"authorization-service/ent/predicate"
 	"authorization-service/ent/refreshtokens"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
 	"context"
 	"fmt"
 	"math"
@@ -22,7 +23,8 @@ type RefreshTokensQuery struct {
 	order         []refreshtokens.OrderOption
 	inters        []Interceptor
 	predicates    []predicate.RefreshTokens
-	withRequestID *RequestQuery
+	withClientID  *ClientsQuery
+	withSessionID *SessionQuery
 	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -60,9 +62,9 @@ func (rtq *RefreshTokensQuery) Order(o ...refreshtokens.OrderOption) *RefreshTok
 	return rtq
 }
 
-// QueryRequestID chains the current query on the "request_id" edge.
-func (rtq *RefreshTokensQuery) QueryRequestID() *RequestQuery {
-	query := (&RequestClient{config: rtq.config}).Query()
+// QueryClientID chains the current query on the "client_id" edge.
+func (rtq *RefreshTokensQuery) QueryClientID() *ClientsQuery {
+	query := (&ClientsClient{config: rtq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := rtq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -73,8 +75,30 @@ func (rtq *RefreshTokensQuery) QueryRequestID() *RequestQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(refreshtokens.Table, refreshtokens.FieldID, selector),
-			sqlgraph.To(request.Table, request.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, refreshtokens.RequestIDTable, refreshtokens.RequestIDColumn),
+			sqlgraph.To(clients.Table, clients.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, refreshtokens.ClientIDTable, refreshtokens.ClientIDColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rtq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySessionID chains the current query on the "session_id" edge.
+func (rtq *RefreshTokensQuery) QuerySessionID() *SessionQuery {
+	query := (&SessionClient{config: rtq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rtq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rtq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(refreshtokens.Table, refreshtokens.FieldID, selector),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, refreshtokens.SessionIDTable, refreshtokens.SessionIDColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rtq.driver.Dialect(), step)
 		return fromU, nil
@@ -274,21 +298,33 @@ func (rtq *RefreshTokensQuery) Clone() *RefreshTokensQuery {
 		order:         append([]refreshtokens.OrderOption{}, rtq.order...),
 		inters:        append([]Interceptor{}, rtq.inters...),
 		predicates:    append([]predicate.RefreshTokens{}, rtq.predicates...),
-		withRequestID: rtq.withRequestID.Clone(),
+		withClientID:  rtq.withClientID.Clone(),
+		withSessionID: rtq.withSessionID.Clone(),
 		// clone intermediate query.
 		sql:  rtq.sql.Clone(),
 		path: rtq.path,
 	}
 }
 
-// WithRequestID tells the query-builder to eager-load the nodes that are connected to
-// the "request_id" edge. The optional arguments are used to configure the query builder of the edge.
-func (rtq *RefreshTokensQuery) WithRequestID(opts ...func(*RequestQuery)) *RefreshTokensQuery {
-	query := (&RequestClient{config: rtq.config}).Query()
+// WithClientID tells the query-builder to eager-load the nodes that are connected to
+// the "client_id" edge. The optional arguments are used to configure the query builder of the edge.
+func (rtq *RefreshTokensQuery) WithClientID(opts ...func(*ClientsQuery)) *RefreshTokensQuery {
+	query := (&ClientsClient{config: rtq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rtq.withRequestID = query
+	rtq.withClientID = query
+	return rtq
+}
+
+// WithSessionID tells the query-builder to eager-load the nodes that are connected to
+// the "session_id" edge. The optional arguments are used to configure the query builder of the edge.
+func (rtq *RefreshTokensQuery) WithSessionID(opts ...func(*SessionQuery)) *RefreshTokensQuery {
+	query := (&SessionClient{config: rtq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rtq.withSessionID = query
 	return rtq
 }
 
@@ -298,12 +334,12 @@ func (rtq *RefreshTokensQuery) WithRequestID(opts ...func(*RequestQuery)) *Refre
 // Example:
 //
 //	var v []struct {
-//		Active bool `json:"active,omitempty"`
+//		RequestID string `json:"request_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.RefreshTokens.Query().
-//		GroupBy(refreshtokens.FieldActive).
+//		GroupBy(refreshtokens.FieldRequestID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (rtq *RefreshTokensQuery) GroupBy(field string, fields ...string) *RefreshTokensGroupBy {
@@ -321,11 +357,11 @@ func (rtq *RefreshTokensQuery) GroupBy(field string, fields ...string) *RefreshT
 // Example:
 //
 //	var v []struct {
-//		Active bool `json:"active,omitempty"`
+//		RequestID string `json:"request_id,omitempty"`
 //	}
 //
 //	client.RefreshTokens.Query().
-//		Select(refreshtokens.FieldActive).
+//		Select(refreshtokens.FieldRequestID).
 //		Scan(ctx, &v)
 func (rtq *RefreshTokensQuery) Select(fields ...string) *RefreshTokensSelect {
 	rtq.ctx.Fields = append(rtq.ctx.Fields, fields...)
@@ -371,11 +407,12 @@ func (rtq *RefreshTokensQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		nodes       = []*RefreshTokens{}
 		withFKs     = rtq.withFKs
 		_spec       = rtq.querySpec()
-		loadedTypes = [1]bool{
-			rtq.withRequestID != nil,
+		loadedTypes = [2]bool{
+			rtq.withClientID != nil,
+			rtq.withSessionID != nil,
 		}
 	)
-	if rtq.withRequestID != nil {
+	if rtq.withClientID != nil || rtq.withSessionID != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -399,23 +436,29 @@ func (rtq *RefreshTokensQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := rtq.withRequestID; query != nil {
-		if err := rtq.loadRequestID(ctx, query, nodes, nil,
-			func(n *RefreshTokens, e *Request) { n.Edges.RequestID = e }); err != nil {
+	if query := rtq.withClientID; query != nil {
+		if err := rtq.loadClientID(ctx, query, nodes, nil,
+			func(n *RefreshTokens, e *Clients) { n.Edges.ClientID = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rtq.withSessionID; query != nil {
+		if err := rtq.loadSessionID(ctx, query, nodes, nil,
+			func(n *RefreshTokens, e *Session) { n.Edges.SessionID = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (rtq *RefreshTokensQuery) loadRequestID(ctx context.Context, query *RequestQuery, nodes []*RefreshTokens, init func(*RefreshTokens), assign func(*RefreshTokens, *Request)) error {
+func (rtq *RefreshTokensQuery) loadClientID(ctx context.Context, query *ClientsQuery, nodes []*RefreshTokens, init func(*RefreshTokens), assign func(*RefreshTokens, *Clients)) error {
 	ids := make([]string, 0, len(nodes))
 	nodeids := make(map[string][]*RefreshTokens)
 	for i := range nodes {
-		if nodes[i].request_refresh_token == nil {
+		if nodes[i].clients_refresh_token == nil {
 			continue
 		}
-		fk := *nodes[i].request_refresh_token
+		fk := *nodes[i].clients_refresh_token
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -424,7 +467,7 @@ func (rtq *RefreshTokensQuery) loadRequestID(ctx context.Context, query *Request
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(request.IDIn(ids...))
+	query.Where(clients.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -432,7 +475,39 @@ func (rtq *RefreshTokensQuery) loadRequestID(ctx context.Context, query *Request
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "request_refresh_token" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "clients_refresh_token" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (rtq *RefreshTokensQuery) loadSessionID(ctx context.Context, query *SessionQuery, nodes []*RefreshTokens, init func(*RefreshTokens), assign func(*RefreshTokens, *Session)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*RefreshTokens)
+	for i := range nodes {
+		if nodes[i].session_refresh_token == nil {
+			continue
+		}
+		fk := *nodes[i].session_refresh_token
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(session.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "session_refresh_token" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

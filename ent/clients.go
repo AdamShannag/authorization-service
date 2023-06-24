@@ -41,20 +41,64 @@ type Clients struct {
 
 // ClientsEdges holds the relations/edges for other nodes in the graph.
 type ClientsEdges struct {
-	// Requests holds the value of the requests edge.
-	Requests []*Request `json:"requests,omitempty"`
+	// AccessToken holds the value of the access_token edge.
+	AccessToken []*AccessTokens `json:"access_token,omitempty"`
+	// AuthorizeCode holds the value of the authorize_code edge.
+	AuthorizeCode []*AuthorizeCodes `json:"authorize_code,omitempty"`
+	// RefreshToken holds the value of the refresh_token edge.
+	RefreshToken []*RefreshTokens `json:"refresh_token,omitempty"`
+	// IDSession holds the value of the id_session edge.
+	IDSession []*IDSessions `json:"id_session,omitempty"`
+	// Pkce holds the value of the pkce edge.
+	Pkce []*PKCES `json:"pkce,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [5]bool
 }
 
-// RequestsOrErr returns the Requests value or an error if the edge
+// AccessTokenOrErr returns the AccessToken value or an error if the edge
 // was not loaded in eager-loading.
-func (e ClientsEdges) RequestsOrErr() ([]*Request, error) {
+func (e ClientsEdges) AccessTokenOrErr() ([]*AccessTokens, error) {
 	if e.loadedTypes[0] {
-		return e.Requests, nil
+		return e.AccessToken, nil
 	}
-	return nil, &NotLoadedError{edge: "requests"}
+	return nil, &NotLoadedError{edge: "access_token"}
+}
+
+// AuthorizeCodeOrErr returns the AuthorizeCode value or an error if the edge
+// was not loaded in eager-loading.
+func (e ClientsEdges) AuthorizeCodeOrErr() ([]*AuthorizeCodes, error) {
+	if e.loadedTypes[1] {
+		return e.AuthorizeCode, nil
+	}
+	return nil, &NotLoadedError{edge: "authorize_code"}
+}
+
+// RefreshTokenOrErr returns the RefreshToken value or an error if the edge
+// was not loaded in eager-loading.
+func (e ClientsEdges) RefreshTokenOrErr() ([]*RefreshTokens, error) {
+	if e.loadedTypes[2] {
+		return e.RefreshToken, nil
+	}
+	return nil, &NotLoadedError{edge: "refresh_token"}
+}
+
+// IDSessionOrErr returns the IDSession value or an error if the edge
+// was not loaded in eager-loading.
+func (e ClientsEdges) IDSessionOrErr() ([]*IDSessions, error) {
+	if e.loadedTypes[3] {
+		return e.IDSession, nil
+	}
+	return nil, &NotLoadedError{edge: "id_session"}
+}
+
+// PkceOrErr returns the Pkce value or an error if the edge
+// was not loaded in eager-loading.
+func (e ClientsEdges) PkceOrErr() ([]*PKCES, error) {
+	if e.loadedTypes[4] {
+		return e.Pkce, nil
+	}
+	return nil, &NotLoadedError{edge: "pkce"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -162,9 +206,29 @@ func (c *Clients) Value(name string) (ent.Value, error) {
 	return c.selectValues.Get(name)
 }
 
-// QueryRequests queries the "requests" edge of the Clients entity.
-func (c *Clients) QueryRequests() *RequestQuery {
-	return NewClientsClient(c.config).QueryRequests(c)
+// QueryAccessToken queries the "access_token" edge of the Clients entity.
+func (c *Clients) QueryAccessToken() *AccessTokensQuery {
+	return NewClientsClient(c.config).QueryAccessToken(c)
+}
+
+// QueryAuthorizeCode queries the "authorize_code" edge of the Clients entity.
+func (c *Clients) QueryAuthorizeCode() *AuthorizeCodesQuery {
+	return NewClientsClient(c.config).QueryAuthorizeCode(c)
+}
+
+// QueryRefreshToken queries the "refresh_token" edge of the Clients entity.
+func (c *Clients) QueryRefreshToken() *RefreshTokensQuery {
+	return NewClientsClient(c.config).QueryRefreshToken(c)
+}
+
+// QueryIDSession queries the "id_session" edge of the Clients entity.
+func (c *Clients) QueryIDSession() *IDSessionsQuery {
+	return NewClientsClient(c.config).QueryIDSession(c)
+}
+
+// QueryPkce queries the "pkce" edge of the Clients entity.
+func (c *Clients) QueryPkce() *PKCESQuery {
+	return NewClientsClient(c.config).QueryPkce(c)
 }
 
 // Update returns a builder for updating this Clients.

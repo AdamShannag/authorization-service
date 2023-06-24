@@ -29,6 +29,10 @@ func (Clients) Fields() []ent.Field {
 // Edges of the Clients.
 func (Clients) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("requests", Request.Type),
+		edge.To("access_token", AccessTokens.Type),
+		edge.To("authorize_code", AuthorizeCodes.Type),
+		edge.To("refresh_token", RefreshTokens.Type),
+		edge.To("id_session", IDSessions.Type),
+		edge.To("pkce", PKCES.Type),
 	}
 }

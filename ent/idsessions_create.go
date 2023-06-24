@@ -3,13 +3,18 @@
 package ent
 
 import (
+	"authorization-service/ent/clients"
 	"authorization-service/ent/idsessions"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
 	"context"
+	"errors"
 	"fmt"
+	"net/url"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"golang.org/x/text/language"
 )
 
 // IDSessionsCreate is the builder for creating a IDSessions entity.
@@ -19,29 +24,104 @@ type IDSessionsCreate struct {
 	hooks    []Hook
 }
 
+// SetRequestID sets the "request_id" field.
+func (isc *IDSessionsCreate) SetRequestID(s string) *IDSessionsCreate {
+	isc.mutation.SetRequestID(s)
+	return isc
+}
+
+// SetRequestedAt sets the "requestedAt" field.
+func (isc *IDSessionsCreate) SetRequestedAt(t time.Time) *IDSessionsCreate {
+	isc.mutation.SetRequestedAt(t)
+	return isc
+}
+
+// SetScopes sets the "scopes" field.
+func (isc *IDSessionsCreate) SetScopes(s []string) *IDSessionsCreate {
+	isc.mutation.SetScopes(s)
+	return isc
+}
+
+// SetGrantedScopes sets the "granted_scopes" field.
+func (isc *IDSessionsCreate) SetGrantedScopes(s []string) *IDSessionsCreate {
+	isc.mutation.SetGrantedScopes(s)
+	return isc
+}
+
+// SetRequestedAudience sets the "requested_audience" field.
+func (isc *IDSessionsCreate) SetRequestedAudience(s []string) *IDSessionsCreate {
+	isc.mutation.SetRequestedAudience(s)
+	return isc
+}
+
+// SetGrantedAudience sets the "granted_audience" field.
+func (isc *IDSessionsCreate) SetGrantedAudience(s []string) *IDSessionsCreate {
+	isc.mutation.SetGrantedAudience(s)
+	return isc
+}
+
+// SetForm sets the "form" field.
+func (isc *IDSessionsCreate) SetForm(u url.Values) *IDSessionsCreate {
+	isc.mutation.SetForm(u)
+	return isc
+}
+
+// SetLang sets the "lang" field.
+func (isc *IDSessionsCreate) SetLang(l language.Tag) *IDSessionsCreate {
+	isc.mutation.SetLang(l)
+	return isc
+}
+
+// SetNillableLang sets the "lang" field if the given value is not nil.
+func (isc *IDSessionsCreate) SetNillableLang(l *language.Tag) *IDSessionsCreate {
+	if l != nil {
+		isc.SetLang(*l)
+	}
+	return isc
+}
+
 // SetID sets the "id" field.
 func (isc *IDSessionsCreate) SetID(s string) *IDSessionsCreate {
 	isc.mutation.SetID(s)
 	return isc
 }
 
-// SetRequestIDID sets the "request_id" edge to the Request entity by ID.
-func (isc *IDSessionsCreate) SetRequestIDID(id string) *IDSessionsCreate {
-	isc.mutation.SetRequestIDID(id)
+// SetClientIDID sets the "client_id" edge to the Clients entity by ID.
+func (isc *IDSessionsCreate) SetClientIDID(id string) *IDSessionsCreate {
+	isc.mutation.SetClientIDID(id)
 	return isc
 }
 
-// SetNillableRequestIDID sets the "request_id" edge to the Request entity by ID if the given value is not nil.
-func (isc *IDSessionsCreate) SetNillableRequestIDID(id *string) *IDSessionsCreate {
+// SetNillableClientIDID sets the "client_id" edge to the Clients entity by ID if the given value is not nil.
+func (isc *IDSessionsCreate) SetNillableClientIDID(id *string) *IDSessionsCreate {
 	if id != nil {
-		isc = isc.SetRequestIDID(*id)
+		isc = isc.SetClientIDID(*id)
 	}
 	return isc
 }
 
-// SetRequestID sets the "request_id" edge to the Request entity.
-func (isc *IDSessionsCreate) SetRequestID(r *Request) *IDSessionsCreate {
-	return isc.SetRequestIDID(r.ID)
+// SetClientID sets the "client_id" edge to the Clients entity.
+func (isc *IDSessionsCreate) SetClientID(c *Clients) *IDSessionsCreate {
+	return isc.SetClientIDID(c.ID)
+}
+
+// SetSessionIDID sets the "session_id" edge to the Session entity by ID.
+func (isc *IDSessionsCreate) SetSessionIDID(id string) *IDSessionsCreate {
+	isc.mutation.SetSessionIDID(id)
+	return isc
+}
+
+// SetNillableSessionIDID sets the "session_id" edge to the Session entity by ID if the given value is not nil.
+func (isc *IDSessionsCreate) SetNillableSessionIDID(id *string) *IDSessionsCreate {
+	if id != nil {
+		isc = isc.SetSessionIDID(*id)
+	}
+	return isc
+}
+
+// SetSessionID sets the "session_id" edge to the Session entity.
+func (isc *IDSessionsCreate) SetSessionID(s *Session) *IDSessionsCreate {
+	return isc.SetSessionIDID(s.ID)
 }
 
 // Mutation returns the IDSessionsMutation object of the builder.
@@ -78,6 +158,27 @@ func (isc *IDSessionsCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (isc *IDSessionsCreate) check() error {
+	if _, ok := isc.mutation.RequestID(); !ok {
+		return &ValidationError{Name: "request_id", err: errors.New(`ent: missing required field "IDSessions.request_id"`)}
+	}
+	if _, ok := isc.mutation.RequestedAt(); !ok {
+		return &ValidationError{Name: "requestedAt", err: errors.New(`ent: missing required field "IDSessions.requestedAt"`)}
+	}
+	if _, ok := isc.mutation.Scopes(); !ok {
+		return &ValidationError{Name: "scopes", err: errors.New(`ent: missing required field "IDSessions.scopes"`)}
+	}
+	if _, ok := isc.mutation.GrantedScopes(); !ok {
+		return &ValidationError{Name: "granted_scopes", err: errors.New(`ent: missing required field "IDSessions.granted_scopes"`)}
+	}
+	if _, ok := isc.mutation.RequestedAudience(); !ok {
+		return &ValidationError{Name: "requested_audience", err: errors.New(`ent: missing required field "IDSessions.requested_audience"`)}
+	}
+	if _, ok := isc.mutation.GrantedAudience(); !ok {
+		return &ValidationError{Name: "granted_audience", err: errors.New(`ent: missing required field "IDSessions.granted_audience"`)}
+	}
+	if _, ok := isc.mutation.Form(); !ok {
+		return &ValidationError{Name: "form", err: errors.New(`ent: missing required field "IDSessions.form"`)}
+	}
 	return nil
 }
 
@@ -113,21 +214,70 @@ func (isc *IDSessionsCreate) createSpec() (*IDSessions, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if nodes := isc.mutation.RequestIDIDs(); len(nodes) > 0 {
+	if value, ok := isc.mutation.RequestID(); ok {
+		_spec.SetField(idsessions.FieldRequestID, field.TypeString, value)
+		_node.RequestID = value
+	}
+	if value, ok := isc.mutation.RequestedAt(); ok {
+		_spec.SetField(idsessions.FieldRequestedAt, field.TypeTime, value)
+		_node.RequestedAt = value
+	}
+	if value, ok := isc.mutation.Scopes(); ok {
+		_spec.SetField(idsessions.FieldScopes, field.TypeJSON, value)
+		_node.Scopes = value
+	}
+	if value, ok := isc.mutation.GrantedScopes(); ok {
+		_spec.SetField(idsessions.FieldGrantedScopes, field.TypeJSON, value)
+		_node.GrantedScopes = value
+	}
+	if value, ok := isc.mutation.RequestedAudience(); ok {
+		_spec.SetField(idsessions.FieldRequestedAudience, field.TypeJSON, value)
+		_node.RequestedAudience = value
+	}
+	if value, ok := isc.mutation.GrantedAudience(); ok {
+		_spec.SetField(idsessions.FieldGrantedAudience, field.TypeJSON, value)
+		_node.GrantedAudience = value
+	}
+	if value, ok := isc.mutation.Form(); ok {
+		_spec.SetField(idsessions.FieldForm, field.TypeJSON, value)
+		_node.Form = value
+	}
+	if value, ok := isc.mutation.Lang(); ok {
+		_spec.SetField(idsessions.FieldLang, field.TypeJSON, value)
+		_node.Lang = value
+	}
+	if nodes := isc.mutation.ClientIDIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   idsessions.RequestIDTable,
-			Columns: []string{idsessions.RequestIDColumn},
+			Table:   idsessions.ClientIDTable,
+			Columns: []string{idsessions.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.request_id_session = &nodes[0]
+		_node.clients_id_session = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := isc.mutation.SessionIDIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   idsessions.SessionIDTable,
+			Columns: []string{idsessions.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.session_id_session = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

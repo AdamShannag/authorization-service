@@ -12,28 +12,62 @@ const (
 	Label = "id_sessions"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// EdgeRequestID holds the string denoting the request_id edge name in mutations.
-	EdgeRequestID = "request_id"
+	// FieldRequestID holds the string denoting the request_id field in the database.
+	FieldRequestID = "request_id"
+	// FieldRequestedAt holds the string denoting the requestedat field in the database.
+	FieldRequestedAt = "requested_at"
+	// FieldScopes holds the string denoting the scopes field in the database.
+	FieldScopes = "scopes"
+	// FieldGrantedScopes holds the string denoting the granted_scopes field in the database.
+	FieldGrantedScopes = "granted_scopes"
+	// FieldRequestedAudience holds the string denoting the requested_audience field in the database.
+	FieldRequestedAudience = "requested_audience"
+	// FieldGrantedAudience holds the string denoting the granted_audience field in the database.
+	FieldGrantedAudience = "granted_audience"
+	// FieldForm holds the string denoting the form field in the database.
+	FieldForm = "form"
+	// FieldLang holds the string denoting the lang field in the database.
+	FieldLang = "lang"
+	// EdgeClientID holds the string denoting the client_id edge name in mutations.
+	EdgeClientID = "client_id"
+	// EdgeSessionID holds the string denoting the session_id edge name in mutations.
+	EdgeSessionID = "session_id"
 	// Table holds the table name of the idsessions in the database.
 	Table = "id_sessions"
-	// RequestIDTable is the table that holds the request_id relation/edge.
-	RequestIDTable = "id_sessions"
-	// RequestIDInverseTable is the table name for the Request entity.
-	// It exists in this package in order to avoid circular dependency with the "request" package.
-	RequestIDInverseTable = "requests"
-	// RequestIDColumn is the table column denoting the request_id relation/edge.
-	RequestIDColumn = "request_id_session"
+	// ClientIDTable is the table that holds the client_id relation/edge.
+	ClientIDTable = "id_sessions"
+	// ClientIDInverseTable is the table name for the Clients entity.
+	// It exists in this package in order to avoid circular dependency with the "clients" package.
+	ClientIDInverseTable = "clients"
+	// ClientIDColumn is the table column denoting the client_id relation/edge.
+	ClientIDColumn = "clients_id_session"
+	// SessionIDTable is the table that holds the session_id relation/edge.
+	SessionIDTable = "id_sessions"
+	// SessionIDInverseTable is the table name for the Session entity.
+	// It exists in this package in order to avoid circular dependency with the "session" package.
+	SessionIDInverseTable = "sessions"
+	// SessionIDColumn is the table column denoting the session_id relation/edge.
+	SessionIDColumn = "session_id_session"
 )
 
 // Columns holds all SQL columns for idsessions fields.
 var Columns = []string{
 	FieldID,
+	FieldRequestID,
+	FieldRequestedAt,
+	FieldScopes,
+	FieldGrantedScopes,
+	FieldRequestedAudience,
+	FieldGrantedAudience,
+	FieldForm,
+	FieldLang,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "id_sessions"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"request_id_session",
+	"clients_id_session",
+	"session_id_session",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -59,16 +93,40 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByRequestIDField orders the results by request_id field.
-func ByRequestIDField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByRequestID orders the results by the request_id field.
+func ByRequestID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequestID, opts...).ToFunc()
+}
+
+// ByRequestedAt orders the results by the requestedAt field.
+func ByRequestedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequestedAt, opts...).ToFunc()
+}
+
+// ByClientIDField orders the results by client_id field.
+func ByClientIDField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newRequestIDStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newClientIDStep(), sql.OrderByField(field, opts...))
 	}
 }
-func newRequestIDStep() *sqlgraph.Step {
+
+// BySessionIDField orders the results by session_id field.
+func BySessionIDField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSessionIDStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newClientIDStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(RequestIDInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, true, RequestIDTable, RequestIDColumn),
+		sqlgraph.To(ClientIDInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ClientIDTable, ClientIDColumn),
+	)
+}
+func newSessionIDStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SessionIDInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SessionIDTable, SessionIDColumn),
 	)
 }

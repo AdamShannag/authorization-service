@@ -28,17 +28,53 @@ const (
 	FieldAudience = "audience"
 	// FieldPublic holds the string denoting the public field in the database.
 	FieldPublic = "public"
-	// EdgeRequests holds the string denoting the requests edge name in mutations.
-	EdgeRequests = "requests"
+	// EdgeAccessToken holds the string denoting the access_token edge name in mutations.
+	EdgeAccessToken = "access_token"
+	// EdgeAuthorizeCode holds the string denoting the authorize_code edge name in mutations.
+	EdgeAuthorizeCode = "authorize_code"
+	// EdgeRefreshToken holds the string denoting the refresh_token edge name in mutations.
+	EdgeRefreshToken = "refresh_token"
+	// EdgeIDSession holds the string denoting the id_session edge name in mutations.
+	EdgeIDSession = "id_session"
+	// EdgePkce holds the string denoting the pkce edge name in mutations.
+	EdgePkce = "pkce"
 	// Table holds the table name of the clients in the database.
 	Table = "clients"
-	// RequestsTable is the table that holds the requests relation/edge.
-	RequestsTable = "requests"
-	// RequestsInverseTable is the table name for the Request entity.
-	// It exists in this package in order to avoid circular dependency with the "request" package.
-	RequestsInverseTable = "requests"
-	// RequestsColumn is the table column denoting the requests relation/edge.
-	RequestsColumn = "clients_requests"
+	// AccessTokenTable is the table that holds the access_token relation/edge.
+	AccessTokenTable = "access_tokens"
+	// AccessTokenInverseTable is the table name for the AccessTokens entity.
+	// It exists in this package in order to avoid circular dependency with the "accesstokens" package.
+	AccessTokenInverseTable = "access_tokens"
+	// AccessTokenColumn is the table column denoting the access_token relation/edge.
+	AccessTokenColumn = "clients_access_token"
+	// AuthorizeCodeTable is the table that holds the authorize_code relation/edge.
+	AuthorizeCodeTable = "authorize_codes"
+	// AuthorizeCodeInverseTable is the table name for the AuthorizeCodes entity.
+	// It exists in this package in order to avoid circular dependency with the "authorizecodes" package.
+	AuthorizeCodeInverseTable = "authorize_codes"
+	// AuthorizeCodeColumn is the table column denoting the authorize_code relation/edge.
+	AuthorizeCodeColumn = "clients_authorize_code"
+	// RefreshTokenTable is the table that holds the refresh_token relation/edge.
+	RefreshTokenTable = "refresh_tokens"
+	// RefreshTokenInverseTable is the table name for the RefreshTokens entity.
+	// It exists in this package in order to avoid circular dependency with the "refreshtokens" package.
+	RefreshTokenInverseTable = "refresh_tokens"
+	// RefreshTokenColumn is the table column denoting the refresh_token relation/edge.
+	RefreshTokenColumn = "clients_refresh_token"
+	// IDSessionTable is the table that holds the id_session relation/edge.
+	IDSessionTable = "id_sessions"
+	// IDSessionInverseTable is the table name for the IDSessions entity.
+	// It exists in this package in order to avoid circular dependency with the "idsessions" package.
+	IDSessionInverseTable = "id_sessions"
+	// IDSessionColumn is the table column denoting the id_session relation/edge.
+	IDSessionColumn = "clients_id_session"
+	// PkceTable is the table that holds the pkce relation/edge.
+	PkceTable = "pkce_ss"
+	// PkceInverseTable is the table name for the PKCES entity.
+	// It exists in this package in order to avoid circular dependency with the "pkces" package.
+	PkceInverseTable = "pkce_ss"
+	// PkceColumn is the table column denoting the pkce relation/edge.
+	PkceColumn = "clients_pkce"
 )
 
 // Columns holds all SQL columns for clients fields.
@@ -77,23 +113,107 @@ func ByPublic(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPublic, opts...).ToFunc()
 }
 
-// ByRequestsCount orders the results by requests count.
-func ByRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByAccessTokenCount orders the results by access_token count.
+func ByAccessTokenCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newRequestsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newAccessTokenStep(), opts...)
 	}
 }
 
-// ByRequests orders the results by requests terms.
-func ByRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByAccessToken orders the results by access_token terms.
+func ByAccessToken(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newAccessTokenStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newRequestsStep() *sqlgraph.Step {
+
+// ByAuthorizeCodeCount orders the results by authorize_code count.
+func ByAuthorizeCodeCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAuthorizeCodeStep(), opts...)
+	}
+}
+
+// ByAuthorizeCode orders the results by authorize_code terms.
+func ByAuthorizeCode(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAuthorizeCodeStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRefreshTokenCount orders the results by refresh_token count.
+func ByRefreshTokenCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRefreshTokenStep(), opts...)
+	}
+}
+
+// ByRefreshToken orders the results by refresh_token terms.
+func ByRefreshToken(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRefreshTokenStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByIDSessionCount orders the results by id_session count.
+func ByIDSessionCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newIDSessionStep(), opts...)
+	}
+}
+
+// ByIDSession orders the results by id_session terms.
+func ByIDSession(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newIDSessionStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPkceCount orders the results by pkce count.
+func ByPkceCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPkceStep(), opts...)
+	}
+}
+
+// ByPkce orders the results by pkce terms.
+func ByPkce(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPkceStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newAccessTokenStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(RequestsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, RequestsTable, RequestsColumn),
+		sqlgraph.To(AccessTokenInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AccessTokenTable, AccessTokenColumn),
+	)
+}
+func newAuthorizeCodeStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AuthorizeCodeInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AuthorizeCodeTable, AuthorizeCodeColumn),
+	)
+}
+func newRefreshTokenStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RefreshTokenInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RefreshTokenTable, RefreshTokenColumn),
+	)
+}
+func newIDSessionStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(IDSessionInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, IDSessionTable, IDSessionColumn),
+	)
+}
+func newPkceStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PkceInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PkceTable, PkceColumn),
 	)
 }

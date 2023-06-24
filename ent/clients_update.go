@@ -3,9 +3,13 @@
 package ent
 
 import (
+	"authorization-service/ent/accesstokens"
+	"authorization-service/ent/authorizecodes"
 	"authorization-service/ent/clients"
+	"authorization-service/ent/idsessions"
+	"authorization-service/ent/pkces"
 	"authorization-service/ent/predicate"
-	"authorization-service/ent/request"
+	"authorization-service/ent/refreshtokens"
 	"context"
 	"errors"
 	"fmt"
@@ -133,19 +137,79 @@ func (cu *ClientsUpdate) ClearPublic() *ClientsUpdate {
 	return cu
 }
 
-// AddRequestIDs adds the "requests" edge to the Request entity by IDs.
-func (cu *ClientsUpdate) AddRequestIDs(ids ...string) *ClientsUpdate {
-	cu.mutation.AddRequestIDs(ids...)
+// AddAccessTokenIDs adds the "access_token" edge to the AccessTokens entity by IDs.
+func (cu *ClientsUpdate) AddAccessTokenIDs(ids ...string) *ClientsUpdate {
+	cu.mutation.AddAccessTokenIDs(ids...)
 	return cu
 }
 
-// AddRequests adds the "requests" edges to the Request entity.
-func (cu *ClientsUpdate) AddRequests(r ...*Request) *ClientsUpdate {
+// AddAccessToken adds the "access_token" edges to the AccessTokens entity.
+func (cu *ClientsUpdate) AddAccessToken(a ...*AccessTokens) *ClientsUpdate {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cu.AddAccessTokenIDs(ids...)
+}
+
+// AddAuthorizeCodeIDs adds the "authorize_code" edge to the AuthorizeCodes entity by IDs.
+func (cu *ClientsUpdate) AddAuthorizeCodeIDs(ids ...string) *ClientsUpdate {
+	cu.mutation.AddAuthorizeCodeIDs(ids...)
+	return cu
+}
+
+// AddAuthorizeCode adds the "authorize_code" edges to the AuthorizeCodes entity.
+func (cu *ClientsUpdate) AddAuthorizeCode(a ...*AuthorizeCodes) *ClientsUpdate {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cu.AddAuthorizeCodeIDs(ids...)
+}
+
+// AddRefreshTokenIDs adds the "refresh_token" edge to the RefreshTokens entity by IDs.
+func (cu *ClientsUpdate) AddRefreshTokenIDs(ids ...string) *ClientsUpdate {
+	cu.mutation.AddRefreshTokenIDs(ids...)
+	return cu
+}
+
+// AddRefreshToken adds the "refresh_token" edges to the RefreshTokens entity.
+func (cu *ClientsUpdate) AddRefreshToken(r ...*RefreshTokens) *ClientsUpdate {
 	ids := make([]string, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return cu.AddRequestIDs(ids...)
+	return cu.AddRefreshTokenIDs(ids...)
+}
+
+// AddIDSessionIDs adds the "id_session" edge to the IDSessions entity by IDs.
+func (cu *ClientsUpdate) AddIDSessionIDs(ids ...string) *ClientsUpdate {
+	cu.mutation.AddIDSessionIDs(ids...)
+	return cu
+}
+
+// AddIDSession adds the "id_session" edges to the IDSessions entity.
+func (cu *ClientsUpdate) AddIDSession(i ...*IDSessions) *ClientsUpdate {
+	ids := make([]string, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return cu.AddIDSessionIDs(ids...)
+}
+
+// AddPkceIDs adds the "pkce" edge to the PKCES entity by IDs.
+func (cu *ClientsUpdate) AddPkceIDs(ids ...string) *ClientsUpdate {
+	cu.mutation.AddPkceIDs(ids...)
+	return cu
+}
+
+// AddPkce adds the "pkce" edges to the PKCES entity.
+func (cu *ClientsUpdate) AddPkce(p ...*PKCES) *ClientsUpdate {
+	ids := make([]string, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return cu.AddPkceIDs(ids...)
 }
 
 // Mutation returns the ClientsMutation object of the builder.
@@ -153,25 +217,109 @@ func (cu *ClientsUpdate) Mutation() *ClientsMutation {
 	return cu.mutation
 }
 
-// ClearRequests clears all "requests" edges to the Request entity.
-func (cu *ClientsUpdate) ClearRequests() *ClientsUpdate {
-	cu.mutation.ClearRequests()
+// ClearAccessToken clears all "access_token" edges to the AccessTokens entity.
+func (cu *ClientsUpdate) ClearAccessToken() *ClientsUpdate {
+	cu.mutation.ClearAccessToken()
 	return cu
 }
 
-// RemoveRequestIDs removes the "requests" edge to Request entities by IDs.
-func (cu *ClientsUpdate) RemoveRequestIDs(ids ...string) *ClientsUpdate {
-	cu.mutation.RemoveRequestIDs(ids...)
+// RemoveAccessTokenIDs removes the "access_token" edge to AccessTokens entities by IDs.
+func (cu *ClientsUpdate) RemoveAccessTokenIDs(ids ...string) *ClientsUpdate {
+	cu.mutation.RemoveAccessTokenIDs(ids...)
 	return cu
 }
 
-// RemoveRequests removes "requests" edges to Request entities.
-func (cu *ClientsUpdate) RemoveRequests(r ...*Request) *ClientsUpdate {
+// RemoveAccessToken removes "access_token" edges to AccessTokens entities.
+func (cu *ClientsUpdate) RemoveAccessToken(a ...*AccessTokens) *ClientsUpdate {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cu.RemoveAccessTokenIDs(ids...)
+}
+
+// ClearAuthorizeCode clears all "authorize_code" edges to the AuthorizeCodes entity.
+func (cu *ClientsUpdate) ClearAuthorizeCode() *ClientsUpdate {
+	cu.mutation.ClearAuthorizeCode()
+	return cu
+}
+
+// RemoveAuthorizeCodeIDs removes the "authorize_code" edge to AuthorizeCodes entities by IDs.
+func (cu *ClientsUpdate) RemoveAuthorizeCodeIDs(ids ...string) *ClientsUpdate {
+	cu.mutation.RemoveAuthorizeCodeIDs(ids...)
+	return cu
+}
+
+// RemoveAuthorizeCode removes "authorize_code" edges to AuthorizeCodes entities.
+func (cu *ClientsUpdate) RemoveAuthorizeCode(a ...*AuthorizeCodes) *ClientsUpdate {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cu.RemoveAuthorizeCodeIDs(ids...)
+}
+
+// ClearRefreshToken clears all "refresh_token" edges to the RefreshTokens entity.
+func (cu *ClientsUpdate) ClearRefreshToken() *ClientsUpdate {
+	cu.mutation.ClearRefreshToken()
+	return cu
+}
+
+// RemoveRefreshTokenIDs removes the "refresh_token" edge to RefreshTokens entities by IDs.
+func (cu *ClientsUpdate) RemoveRefreshTokenIDs(ids ...string) *ClientsUpdate {
+	cu.mutation.RemoveRefreshTokenIDs(ids...)
+	return cu
+}
+
+// RemoveRefreshToken removes "refresh_token" edges to RefreshTokens entities.
+func (cu *ClientsUpdate) RemoveRefreshToken(r ...*RefreshTokens) *ClientsUpdate {
 	ids := make([]string, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return cu.RemoveRequestIDs(ids...)
+	return cu.RemoveRefreshTokenIDs(ids...)
+}
+
+// ClearIDSession clears all "id_session" edges to the IDSessions entity.
+func (cu *ClientsUpdate) ClearIDSession() *ClientsUpdate {
+	cu.mutation.ClearIDSession()
+	return cu
+}
+
+// RemoveIDSessionIDs removes the "id_session" edge to IDSessions entities by IDs.
+func (cu *ClientsUpdate) RemoveIDSessionIDs(ids ...string) *ClientsUpdate {
+	cu.mutation.RemoveIDSessionIDs(ids...)
+	return cu
+}
+
+// RemoveIDSession removes "id_session" edges to IDSessions entities.
+func (cu *ClientsUpdate) RemoveIDSession(i ...*IDSessions) *ClientsUpdate {
+	ids := make([]string, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return cu.RemoveIDSessionIDs(ids...)
+}
+
+// ClearPkce clears all "pkce" edges to the PKCES entity.
+func (cu *ClientsUpdate) ClearPkce() *ClientsUpdate {
+	cu.mutation.ClearPkce()
+	return cu
+}
+
+// RemovePkceIDs removes the "pkce" edge to PKCES entities by IDs.
+func (cu *ClientsUpdate) RemovePkceIDs(ids ...string) *ClientsUpdate {
+	cu.mutation.RemovePkceIDs(ids...)
+	return cu
+}
+
+// RemovePkce removes "pkce" edges to PKCES entities.
+func (cu *ClientsUpdate) RemovePkce(p ...*PKCES) *ClientsUpdate {
+	ids := make([]string, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return cu.RemovePkceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -270,28 +418,28 @@ func (cu *ClientsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if cu.mutation.PublicCleared() {
 		_spec.ClearField(clients.FieldPublic, field.TypeBool)
 	}
-	if cu.mutation.RequestsCleared() {
+	if cu.mutation.AccessTokenCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   clients.RequestsTable,
-			Columns: []string{clients.RequestsColumn},
+			Table:   clients.AccessTokenTable,
+			Columns: []string{clients.AccessTokenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(accesstokens.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cu.mutation.RemovedRequestsIDs(); len(nodes) > 0 && !cu.mutation.RequestsCleared() {
+	if nodes := cu.mutation.RemovedAccessTokenIDs(); len(nodes) > 0 && !cu.mutation.AccessTokenCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   clients.RequestsTable,
-			Columns: []string{clients.RequestsColumn},
+			Table:   clients.AccessTokenTable,
+			Columns: []string{clients.AccessTokenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(accesstokens.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -299,15 +447,195 @@ func (cu *ClientsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cu.mutation.RequestsIDs(); len(nodes) > 0 {
+	if nodes := cu.mutation.AccessTokenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   clients.RequestsTable,
-			Columns: []string{clients.RequestsColumn},
+			Table:   clients.AccessTokenTable,
+			Columns: []string{clients.AccessTokenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(accesstokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.AuthorizeCodeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.AuthorizeCodeTable,
+			Columns: []string{clients.AuthorizeCodeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authorizecodes.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedAuthorizeCodeIDs(); len(nodes) > 0 && !cu.mutation.AuthorizeCodeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.AuthorizeCodeTable,
+			Columns: []string{clients.AuthorizeCodeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authorizecodes.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.AuthorizeCodeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.AuthorizeCodeTable,
+			Columns: []string{clients.AuthorizeCodeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authorizecodes.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.RefreshTokenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.RefreshTokenTable,
+			Columns: []string{clients.RefreshTokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtokens.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedRefreshTokenIDs(); len(nodes) > 0 && !cu.mutation.RefreshTokenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.RefreshTokenTable,
+			Columns: []string{clients.RefreshTokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RefreshTokenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.RefreshTokenTable,
+			Columns: []string{clients.RefreshTokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.IDSessionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.IDSessionTable,
+			Columns: []string{clients.IDSessionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(idsessions.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedIDSessionIDs(); len(nodes) > 0 && !cu.mutation.IDSessionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.IDSessionTable,
+			Columns: []string{clients.IDSessionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(idsessions.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.IDSessionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.IDSessionTable,
+			Columns: []string{clients.IDSessionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(idsessions.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.PkceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.PkceTable,
+			Columns: []string{clients.PkceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pkces.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedPkceIDs(); len(nodes) > 0 && !cu.mutation.PkceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.PkceTable,
+			Columns: []string{clients.PkceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pkces.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.PkceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.PkceTable,
+			Columns: []string{clients.PkceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pkces.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -439,19 +767,79 @@ func (cuo *ClientsUpdateOne) ClearPublic() *ClientsUpdateOne {
 	return cuo
 }
 
-// AddRequestIDs adds the "requests" edge to the Request entity by IDs.
-func (cuo *ClientsUpdateOne) AddRequestIDs(ids ...string) *ClientsUpdateOne {
-	cuo.mutation.AddRequestIDs(ids...)
+// AddAccessTokenIDs adds the "access_token" edge to the AccessTokens entity by IDs.
+func (cuo *ClientsUpdateOne) AddAccessTokenIDs(ids ...string) *ClientsUpdateOne {
+	cuo.mutation.AddAccessTokenIDs(ids...)
 	return cuo
 }
 
-// AddRequests adds the "requests" edges to the Request entity.
-func (cuo *ClientsUpdateOne) AddRequests(r ...*Request) *ClientsUpdateOne {
+// AddAccessToken adds the "access_token" edges to the AccessTokens entity.
+func (cuo *ClientsUpdateOne) AddAccessToken(a ...*AccessTokens) *ClientsUpdateOne {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cuo.AddAccessTokenIDs(ids...)
+}
+
+// AddAuthorizeCodeIDs adds the "authorize_code" edge to the AuthorizeCodes entity by IDs.
+func (cuo *ClientsUpdateOne) AddAuthorizeCodeIDs(ids ...string) *ClientsUpdateOne {
+	cuo.mutation.AddAuthorizeCodeIDs(ids...)
+	return cuo
+}
+
+// AddAuthorizeCode adds the "authorize_code" edges to the AuthorizeCodes entity.
+func (cuo *ClientsUpdateOne) AddAuthorizeCode(a ...*AuthorizeCodes) *ClientsUpdateOne {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cuo.AddAuthorizeCodeIDs(ids...)
+}
+
+// AddRefreshTokenIDs adds the "refresh_token" edge to the RefreshTokens entity by IDs.
+func (cuo *ClientsUpdateOne) AddRefreshTokenIDs(ids ...string) *ClientsUpdateOne {
+	cuo.mutation.AddRefreshTokenIDs(ids...)
+	return cuo
+}
+
+// AddRefreshToken adds the "refresh_token" edges to the RefreshTokens entity.
+func (cuo *ClientsUpdateOne) AddRefreshToken(r ...*RefreshTokens) *ClientsUpdateOne {
 	ids := make([]string, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return cuo.AddRequestIDs(ids...)
+	return cuo.AddRefreshTokenIDs(ids...)
+}
+
+// AddIDSessionIDs adds the "id_session" edge to the IDSessions entity by IDs.
+func (cuo *ClientsUpdateOne) AddIDSessionIDs(ids ...string) *ClientsUpdateOne {
+	cuo.mutation.AddIDSessionIDs(ids...)
+	return cuo
+}
+
+// AddIDSession adds the "id_session" edges to the IDSessions entity.
+func (cuo *ClientsUpdateOne) AddIDSession(i ...*IDSessions) *ClientsUpdateOne {
+	ids := make([]string, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return cuo.AddIDSessionIDs(ids...)
+}
+
+// AddPkceIDs adds the "pkce" edge to the PKCES entity by IDs.
+func (cuo *ClientsUpdateOne) AddPkceIDs(ids ...string) *ClientsUpdateOne {
+	cuo.mutation.AddPkceIDs(ids...)
+	return cuo
+}
+
+// AddPkce adds the "pkce" edges to the PKCES entity.
+func (cuo *ClientsUpdateOne) AddPkce(p ...*PKCES) *ClientsUpdateOne {
+	ids := make([]string, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return cuo.AddPkceIDs(ids...)
 }
 
 // Mutation returns the ClientsMutation object of the builder.
@@ -459,25 +847,109 @@ func (cuo *ClientsUpdateOne) Mutation() *ClientsMutation {
 	return cuo.mutation
 }
 
-// ClearRequests clears all "requests" edges to the Request entity.
-func (cuo *ClientsUpdateOne) ClearRequests() *ClientsUpdateOne {
-	cuo.mutation.ClearRequests()
+// ClearAccessToken clears all "access_token" edges to the AccessTokens entity.
+func (cuo *ClientsUpdateOne) ClearAccessToken() *ClientsUpdateOne {
+	cuo.mutation.ClearAccessToken()
 	return cuo
 }
 
-// RemoveRequestIDs removes the "requests" edge to Request entities by IDs.
-func (cuo *ClientsUpdateOne) RemoveRequestIDs(ids ...string) *ClientsUpdateOne {
-	cuo.mutation.RemoveRequestIDs(ids...)
+// RemoveAccessTokenIDs removes the "access_token" edge to AccessTokens entities by IDs.
+func (cuo *ClientsUpdateOne) RemoveAccessTokenIDs(ids ...string) *ClientsUpdateOne {
+	cuo.mutation.RemoveAccessTokenIDs(ids...)
 	return cuo
 }
 
-// RemoveRequests removes "requests" edges to Request entities.
-func (cuo *ClientsUpdateOne) RemoveRequests(r ...*Request) *ClientsUpdateOne {
+// RemoveAccessToken removes "access_token" edges to AccessTokens entities.
+func (cuo *ClientsUpdateOne) RemoveAccessToken(a ...*AccessTokens) *ClientsUpdateOne {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cuo.RemoveAccessTokenIDs(ids...)
+}
+
+// ClearAuthorizeCode clears all "authorize_code" edges to the AuthorizeCodes entity.
+func (cuo *ClientsUpdateOne) ClearAuthorizeCode() *ClientsUpdateOne {
+	cuo.mutation.ClearAuthorizeCode()
+	return cuo
+}
+
+// RemoveAuthorizeCodeIDs removes the "authorize_code" edge to AuthorizeCodes entities by IDs.
+func (cuo *ClientsUpdateOne) RemoveAuthorizeCodeIDs(ids ...string) *ClientsUpdateOne {
+	cuo.mutation.RemoveAuthorizeCodeIDs(ids...)
+	return cuo
+}
+
+// RemoveAuthorizeCode removes "authorize_code" edges to AuthorizeCodes entities.
+func (cuo *ClientsUpdateOne) RemoveAuthorizeCode(a ...*AuthorizeCodes) *ClientsUpdateOne {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cuo.RemoveAuthorizeCodeIDs(ids...)
+}
+
+// ClearRefreshToken clears all "refresh_token" edges to the RefreshTokens entity.
+func (cuo *ClientsUpdateOne) ClearRefreshToken() *ClientsUpdateOne {
+	cuo.mutation.ClearRefreshToken()
+	return cuo
+}
+
+// RemoveRefreshTokenIDs removes the "refresh_token" edge to RefreshTokens entities by IDs.
+func (cuo *ClientsUpdateOne) RemoveRefreshTokenIDs(ids ...string) *ClientsUpdateOne {
+	cuo.mutation.RemoveRefreshTokenIDs(ids...)
+	return cuo
+}
+
+// RemoveRefreshToken removes "refresh_token" edges to RefreshTokens entities.
+func (cuo *ClientsUpdateOne) RemoveRefreshToken(r ...*RefreshTokens) *ClientsUpdateOne {
 	ids := make([]string, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return cuo.RemoveRequestIDs(ids...)
+	return cuo.RemoveRefreshTokenIDs(ids...)
+}
+
+// ClearIDSession clears all "id_session" edges to the IDSessions entity.
+func (cuo *ClientsUpdateOne) ClearIDSession() *ClientsUpdateOne {
+	cuo.mutation.ClearIDSession()
+	return cuo
+}
+
+// RemoveIDSessionIDs removes the "id_session" edge to IDSessions entities by IDs.
+func (cuo *ClientsUpdateOne) RemoveIDSessionIDs(ids ...string) *ClientsUpdateOne {
+	cuo.mutation.RemoveIDSessionIDs(ids...)
+	return cuo
+}
+
+// RemoveIDSession removes "id_session" edges to IDSessions entities.
+func (cuo *ClientsUpdateOne) RemoveIDSession(i ...*IDSessions) *ClientsUpdateOne {
+	ids := make([]string, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return cuo.RemoveIDSessionIDs(ids...)
+}
+
+// ClearPkce clears all "pkce" edges to the PKCES entity.
+func (cuo *ClientsUpdateOne) ClearPkce() *ClientsUpdateOne {
+	cuo.mutation.ClearPkce()
+	return cuo
+}
+
+// RemovePkceIDs removes the "pkce" edge to PKCES entities by IDs.
+func (cuo *ClientsUpdateOne) RemovePkceIDs(ids ...string) *ClientsUpdateOne {
+	cuo.mutation.RemovePkceIDs(ids...)
+	return cuo
+}
+
+// RemovePkce removes "pkce" edges to PKCES entities.
+func (cuo *ClientsUpdateOne) RemovePkce(p ...*PKCES) *ClientsUpdateOne {
+	ids := make([]string, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return cuo.RemovePkceIDs(ids...)
 }
 
 // Where appends a list predicates to the ClientsUpdate builder.
@@ -606,28 +1078,28 @@ func (cuo *ClientsUpdateOne) sqlSave(ctx context.Context) (_node *Clients, err e
 	if cuo.mutation.PublicCleared() {
 		_spec.ClearField(clients.FieldPublic, field.TypeBool)
 	}
-	if cuo.mutation.RequestsCleared() {
+	if cuo.mutation.AccessTokenCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   clients.RequestsTable,
-			Columns: []string{clients.RequestsColumn},
+			Table:   clients.AccessTokenTable,
+			Columns: []string{clients.AccessTokenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(accesstokens.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cuo.mutation.RemovedRequestsIDs(); len(nodes) > 0 && !cuo.mutation.RequestsCleared() {
+	if nodes := cuo.mutation.RemovedAccessTokenIDs(); len(nodes) > 0 && !cuo.mutation.AccessTokenCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   clients.RequestsTable,
-			Columns: []string{clients.RequestsColumn},
+			Table:   clients.AccessTokenTable,
+			Columns: []string{clients.AccessTokenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(accesstokens.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -635,15 +1107,195 @@ func (cuo *ClientsUpdateOne) sqlSave(ctx context.Context) (_node *Clients, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cuo.mutation.RequestsIDs(); len(nodes) > 0 {
+	if nodes := cuo.mutation.AccessTokenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   clients.RequestsTable,
-			Columns: []string{clients.RequestsColumn},
+			Table:   clients.AccessTokenTable,
+			Columns: []string{clients.AccessTokenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(accesstokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.AuthorizeCodeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.AuthorizeCodeTable,
+			Columns: []string{clients.AuthorizeCodeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authorizecodes.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedAuthorizeCodeIDs(); len(nodes) > 0 && !cuo.mutation.AuthorizeCodeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.AuthorizeCodeTable,
+			Columns: []string{clients.AuthorizeCodeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authorizecodes.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.AuthorizeCodeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.AuthorizeCodeTable,
+			Columns: []string{clients.AuthorizeCodeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authorizecodes.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.RefreshTokenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.RefreshTokenTable,
+			Columns: []string{clients.RefreshTokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtokens.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedRefreshTokenIDs(); len(nodes) > 0 && !cuo.mutation.RefreshTokenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.RefreshTokenTable,
+			Columns: []string{clients.RefreshTokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RefreshTokenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.RefreshTokenTable,
+			Columns: []string{clients.RefreshTokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.IDSessionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.IDSessionTable,
+			Columns: []string{clients.IDSessionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(idsessions.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedIDSessionIDs(); len(nodes) > 0 && !cuo.mutation.IDSessionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.IDSessionTable,
+			Columns: []string{clients.IDSessionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(idsessions.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.IDSessionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.IDSessionTable,
+			Columns: []string{clients.IDSessionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(idsessions.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.PkceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.PkceTable,
+			Columns: []string{clients.PkceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pkces.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedPkceIDs(); len(nodes) > 0 && !cuo.mutation.PkceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.PkceTable,
+			Columns: []string{clients.PkceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pkces.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.PkceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.PkceTable,
+			Columns: []string{clients.PkceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pkces.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

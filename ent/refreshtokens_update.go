@@ -3,16 +3,21 @@
 package ent
 
 import (
+	"authorization-service/ent/clients"
 	"authorization-service/ent/predicate"
 	"authorization-service/ent/refreshtokens"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
+	"golang.org/x/text/language"
 )
 
 // RefreshTokensUpdate is the builder for updating RefreshTokens entities.
@@ -28,29 +33,134 @@ func (rtu *RefreshTokensUpdate) Where(ps ...predicate.RefreshTokens) *RefreshTok
 	return rtu
 }
 
+// SetRequestID sets the "request_id" field.
+func (rtu *RefreshTokensUpdate) SetRequestID(s string) *RefreshTokensUpdate {
+	rtu.mutation.SetRequestID(s)
+	return rtu
+}
+
+// SetRequestedAt sets the "requestedAt" field.
+func (rtu *RefreshTokensUpdate) SetRequestedAt(t time.Time) *RefreshTokensUpdate {
+	rtu.mutation.SetRequestedAt(t)
+	return rtu
+}
+
+// SetScopes sets the "scopes" field.
+func (rtu *RefreshTokensUpdate) SetScopes(s []string) *RefreshTokensUpdate {
+	rtu.mutation.SetScopes(s)
+	return rtu
+}
+
+// AppendScopes appends s to the "scopes" field.
+func (rtu *RefreshTokensUpdate) AppendScopes(s []string) *RefreshTokensUpdate {
+	rtu.mutation.AppendScopes(s)
+	return rtu
+}
+
+// SetGrantedScopes sets the "granted_scopes" field.
+func (rtu *RefreshTokensUpdate) SetGrantedScopes(s []string) *RefreshTokensUpdate {
+	rtu.mutation.SetGrantedScopes(s)
+	return rtu
+}
+
+// AppendGrantedScopes appends s to the "granted_scopes" field.
+func (rtu *RefreshTokensUpdate) AppendGrantedScopes(s []string) *RefreshTokensUpdate {
+	rtu.mutation.AppendGrantedScopes(s)
+	return rtu
+}
+
+// SetRequestedAudience sets the "requested_audience" field.
+func (rtu *RefreshTokensUpdate) SetRequestedAudience(s []string) *RefreshTokensUpdate {
+	rtu.mutation.SetRequestedAudience(s)
+	return rtu
+}
+
+// AppendRequestedAudience appends s to the "requested_audience" field.
+func (rtu *RefreshTokensUpdate) AppendRequestedAudience(s []string) *RefreshTokensUpdate {
+	rtu.mutation.AppendRequestedAudience(s)
+	return rtu
+}
+
+// SetGrantedAudience sets the "granted_audience" field.
+func (rtu *RefreshTokensUpdate) SetGrantedAudience(s []string) *RefreshTokensUpdate {
+	rtu.mutation.SetGrantedAudience(s)
+	return rtu
+}
+
+// AppendGrantedAudience appends s to the "granted_audience" field.
+func (rtu *RefreshTokensUpdate) AppendGrantedAudience(s []string) *RefreshTokensUpdate {
+	rtu.mutation.AppendGrantedAudience(s)
+	return rtu
+}
+
+// SetForm sets the "form" field.
+func (rtu *RefreshTokensUpdate) SetForm(u url.Values) *RefreshTokensUpdate {
+	rtu.mutation.SetForm(u)
+	return rtu
+}
+
+// SetLang sets the "lang" field.
+func (rtu *RefreshTokensUpdate) SetLang(l language.Tag) *RefreshTokensUpdate {
+	rtu.mutation.SetLang(l)
+	return rtu
+}
+
+// SetNillableLang sets the "lang" field if the given value is not nil.
+func (rtu *RefreshTokensUpdate) SetNillableLang(l *language.Tag) *RefreshTokensUpdate {
+	if l != nil {
+		rtu.SetLang(*l)
+	}
+	return rtu
+}
+
+// ClearLang clears the value of the "lang" field.
+func (rtu *RefreshTokensUpdate) ClearLang() *RefreshTokensUpdate {
+	rtu.mutation.ClearLang()
+	return rtu
+}
+
 // SetActive sets the "active" field.
 func (rtu *RefreshTokensUpdate) SetActive(b bool) *RefreshTokensUpdate {
 	rtu.mutation.SetActive(b)
 	return rtu
 }
 
-// SetRequestIDID sets the "request_id" edge to the Request entity by ID.
-func (rtu *RefreshTokensUpdate) SetRequestIDID(id string) *RefreshTokensUpdate {
-	rtu.mutation.SetRequestIDID(id)
+// SetClientIDID sets the "client_id" edge to the Clients entity by ID.
+func (rtu *RefreshTokensUpdate) SetClientIDID(id string) *RefreshTokensUpdate {
+	rtu.mutation.SetClientIDID(id)
 	return rtu
 }
 
-// SetNillableRequestIDID sets the "request_id" edge to the Request entity by ID if the given value is not nil.
-func (rtu *RefreshTokensUpdate) SetNillableRequestIDID(id *string) *RefreshTokensUpdate {
+// SetNillableClientIDID sets the "client_id" edge to the Clients entity by ID if the given value is not nil.
+func (rtu *RefreshTokensUpdate) SetNillableClientIDID(id *string) *RefreshTokensUpdate {
 	if id != nil {
-		rtu = rtu.SetRequestIDID(*id)
+		rtu = rtu.SetClientIDID(*id)
 	}
 	return rtu
 }
 
-// SetRequestID sets the "request_id" edge to the Request entity.
-func (rtu *RefreshTokensUpdate) SetRequestID(r *Request) *RefreshTokensUpdate {
-	return rtu.SetRequestIDID(r.ID)
+// SetClientID sets the "client_id" edge to the Clients entity.
+func (rtu *RefreshTokensUpdate) SetClientID(c *Clients) *RefreshTokensUpdate {
+	return rtu.SetClientIDID(c.ID)
+}
+
+// SetSessionIDID sets the "session_id" edge to the Session entity by ID.
+func (rtu *RefreshTokensUpdate) SetSessionIDID(id string) *RefreshTokensUpdate {
+	rtu.mutation.SetSessionIDID(id)
+	return rtu
+}
+
+// SetNillableSessionIDID sets the "session_id" edge to the Session entity by ID if the given value is not nil.
+func (rtu *RefreshTokensUpdate) SetNillableSessionIDID(id *string) *RefreshTokensUpdate {
+	if id != nil {
+		rtu = rtu.SetSessionIDID(*id)
+	}
+	return rtu
+}
+
+// SetSessionID sets the "session_id" edge to the Session entity.
+func (rtu *RefreshTokensUpdate) SetSessionID(s *Session) *RefreshTokensUpdate {
+	return rtu.SetSessionIDID(s.ID)
 }
 
 // Mutation returns the RefreshTokensMutation object of the builder.
@@ -58,9 +168,15 @@ func (rtu *RefreshTokensUpdate) Mutation() *RefreshTokensMutation {
 	return rtu.mutation
 }
 
-// ClearRequestID clears the "request_id" edge to the Request entity.
-func (rtu *RefreshTokensUpdate) ClearRequestID() *RefreshTokensUpdate {
-	rtu.mutation.ClearRequestID()
+// ClearClientID clears the "client_id" edge to the Clients entity.
+func (rtu *RefreshTokensUpdate) ClearClientID() *RefreshTokensUpdate {
+	rtu.mutation.ClearClientID()
+	return rtu
+}
+
+// ClearSessionID clears the "session_id" edge to the Session entity.
+func (rtu *RefreshTokensUpdate) ClearSessionID() *RefreshTokensUpdate {
+	rtu.mutation.ClearSessionID()
 	return rtu
 }
 
@@ -100,31 +216,107 @@ func (rtu *RefreshTokensUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			}
 		}
 	}
+	if value, ok := rtu.mutation.RequestID(); ok {
+		_spec.SetField(refreshtokens.FieldRequestID, field.TypeString, value)
+	}
+	if value, ok := rtu.mutation.RequestedAt(); ok {
+		_spec.SetField(refreshtokens.FieldRequestedAt, field.TypeTime, value)
+	}
+	if value, ok := rtu.mutation.Scopes(); ok {
+		_spec.SetField(refreshtokens.FieldScopes, field.TypeJSON, value)
+	}
+	if value, ok := rtu.mutation.AppendedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, refreshtokens.FieldScopes, value)
+		})
+	}
+	if value, ok := rtu.mutation.GrantedScopes(); ok {
+		_spec.SetField(refreshtokens.FieldGrantedScopes, field.TypeJSON, value)
+	}
+	if value, ok := rtu.mutation.AppendedGrantedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, refreshtokens.FieldGrantedScopes, value)
+		})
+	}
+	if value, ok := rtu.mutation.RequestedAudience(); ok {
+		_spec.SetField(refreshtokens.FieldRequestedAudience, field.TypeJSON, value)
+	}
+	if value, ok := rtu.mutation.AppendedRequestedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, refreshtokens.FieldRequestedAudience, value)
+		})
+	}
+	if value, ok := rtu.mutation.GrantedAudience(); ok {
+		_spec.SetField(refreshtokens.FieldGrantedAudience, field.TypeJSON, value)
+	}
+	if value, ok := rtu.mutation.AppendedGrantedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, refreshtokens.FieldGrantedAudience, value)
+		})
+	}
+	if value, ok := rtu.mutation.Form(); ok {
+		_spec.SetField(refreshtokens.FieldForm, field.TypeJSON, value)
+	}
+	if value, ok := rtu.mutation.Lang(); ok {
+		_spec.SetField(refreshtokens.FieldLang, field.TypeJSON, value)
+	}
+	if rtu.mutation.LangCleared() {
+		_spec.ClearField(refreshtokens.FieldLang, field.TypeJSON)
+	}
 	if value, ok := rtu.mutation.Active(); ok {
 		_spec.SetField(refreshtokens.FieldActive, field.TypeBool, value)
 	}
-	if rtu.mutation.RequestIDCleared() {
+	if rtu.mutation.ClientIDCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   refreshtokens.RequestIDTable,
-			Columns: []string{refreshtokens.RequestIDColumn},
+			Table:   refreshtokens.ClientIDTable,
+			Columns: []string{refreshtokens.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rtu.mutation.RequestIDIDs(); len(nodes) > 0 {
+	if nodes := rtu.mutation.ClientIDIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   refreshtokens.RequestIDTable,
-			Columns: []string{refreshtokens.RequestIDColumn},
+			Table:   refreshtokens.ClientIDTable,
+			Columns: []string{refreshtokens.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rtu.mutation.SessionIDCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   refreshtokens.SessionIDTable,
+			Columns: []string{refreshtokens.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rtu.mutation.SessionIDIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   refreshtokens.SessionIDTable,
+			Columns: []string{refreshtokens.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -152,29 +344,134 @@ type RefreshTokensUpdateOne struct {
 	mutation *RefreshTokensMutation
 }
 
+// SetRequestID sets the "request_id" field.
+func (rtuo *RefreshTokensUpdateOne) SetRequestID(s string) *RefreshTokensUpdateOne {
+	rtuo.mutation.SetRequestID(s)
+	return rtuo
+}
+
+// SetRequestedAt sets the "requestedAt" field.
+func (rtuo *RefreshTokensUpdateOne) SetRequestedAt(t time.Time) *RefreshTokensUpdateOne {
+	rtuo.mutation.SetRequestedAt(t)
+	return rtuo
+}
+
+// SetScopes sets the "scopes" field.
+func (rtuo *RefreshTokensUpdateOne) SetScopes(s []string) *RefreshTokensUpdateOne {
+	rtuo.mutation.SetScopes(s)
+	return rtuo
+}
+
+// AppendScopes appends s to the "scopes" field.
+func (rtuo *RefreshTokensUpdateOne) AppendScopes(s []string) *RefreshTokensUpdateOne {
+	rtuo.mutation.AppendScopes(s)
+	return rtuo
+}
+
+// SetGrantedScopes sets the "granted_scopes" field.
+func (rtuo *RefreshTokensUpdateOne) SetGrantedScopes(s []string) *RefreshTokensUpdateOne {
+	rtuo.mutation.SetGrantedScopes(s)
+	return rtuo
+}
+
+// AppendGrantedScopes appends s to the "granted_scopes" field.
+func (rtuo *RefreshTokensUpdateOne) AppendGrantedScopes(s []string) *RefreshTokensUpdateOne {
+	rtuo.mutation.AppendGrantedScopes(s)
+	return rtuo
+}
+
+// SetRequestedAudience sets the "requested_audience" field.
+func (rtuo *RefreshTokensUpdateOne) SetRequestedAudience(s []string) *RefreshTokensUpdateOne {
+	rtuo.mutation.SetRequestedAudience(s)
+	return rtuo
+}
+
+// AppendRequestedAudience appends s to the "requested_audience" field.
+func (rtuo *RefreshTokensUpdateOne) AppendRequestedAudience(s []string) *RefreshTokensUpdateOne {
+	rtuo.mutation.AppendRequestedAudience(s)
+	return rtuo
+}
+
+// SetGrantedAudience sets the "granted_audience" field.
+func (rtuo *RefreshTokensUpdateOne) SetGrantedAudience(s []string) *RefreshTokensUpdateOne {
+	rtuo.mutation.SetGrantedAudience(s)
+	return rtuo
+}
+
+// AppendGrantedAudience appends s to the "granted_audience" field.
+func (rtuo *RefreshTokensUpdateOne) AppendGrantedAudience(s []string) *RefreshTokensUpdateOne {
+	rtuo.mutation.AppendGrantedAudience(s)
+	return rtuo
+}
+
+// SetForm sets the "form" field.
+func (rtuo *RefreshTokensUpdateOne) SetForm(u url.Values) *RefreshTokensUpdateOne {
+	rtuo.mutation.SetForm(u)
+	return rtuo
+}
+
+// SetLang sets the "lang" field.
+func (rtuo *RefreshTokensUpdateOne) SetLang(l language.Tag) *RefreshTokensUpdateOne {
+	rtuo.mutation.SetLang(l)
+	return rtuo
+}
+
+// SetNillableLang sets the "lang" field if the given value is not nil.
+func (rtuo *RefreshTokensUpdateOne) SetNillableLang(l *language.Tag) *RefreshTokensUpdateOne {
+	if l != nil {
+		rtuo.SetLang(*l)
+	}
+	return rtuo
+}
+
+// ClearLang clears the value of the "lang" field.
+func (rtuo *RefreshTokensUpdateOne) ClearLang() *RefreshTokensUpdateOne {
+	rtuo.mutation.ClearLang()
+	return rtuo
+}
+
 // SetActive sets the "active" field.
 func (rtuo *RefreshTokensUpdateOne) SetActive(b bool) *RefreshTokensUpdateOne {
 	rtuo.mutation.SetActive(b)
 	return rtuo
 }
 
-// SetRequestIDID sets the "request_id" edge to the Request entity by ID.
-func (rtuo *RefreshTokensUpdateOne) SetRequestIDID(id string) *RefreshTokensUpdateOne {
-	rtuo.mutation.SetRequestIDID(id)
+// SetClientIDID sets the "client_id" edge to the Clients entity by ID.
+func (rtuo *RefreshTokensUpdateOne) SetClientIDID(id string) *RefreshTokensUpdateOne {
+	rtuo.mutation.SetClientIDID(id)
 	return rtuo
 }
 
-// SetNillableRequestIDID sets the "request_id" edge to the Request entity by ID if the given value is not nil.
-func (rtuo *RefreshTokensUpdateOne) SetNillableRequestIDID(id *string) *RefreshTokensUpdateOne {
+// SetNillableClientIDID sets the "client_id" edge to the Clients entity by ID if the given value is not nil.
+func (rtuo *RefreshTokensUpdateOne) SetNillableClientIDID(id *string) *RefreshTokensUpdateOne {
 	if id != nil {
-		rtuo = rtuo.SetRequestIDID(*id)
+		rtuo = rtuo.SetClientIDID(*id)
 	}
 	return rtuo
 }
 
-// SetRequestID sets the "request_id" edge to the Request entity.
-func (rtuo *RefreshTokensUpdateOne) SetRequestID(r *Request) *RefreshTokensUpdateOne {
-	return rtuo.SetRequestIDID(r.ID)
+// SetClientID sets the "client_id" edge to the Clients entity.
+func (rtuo *RefreshTokensUpdateOne) SetClientID(c *Clients) *RefreshTokensUpdateOne {
+	return rtuo.SetClientIDID(c.ID)
+}
+
+// SetSessionIDID sets the "session_id" edge to the Session entity by ID.
+func (rtuo *RefreshTokensUpdateOne) SetSessionIDID(id string) *RefreshTokensUpdateOne {
+	rtuo.mutation.SetSessionIDID(id)
+	return rtuo
+}
+
+// SetNillableSessionIDID sets the "session_id" edge to the Session entity by ID if the given value is not nil.
+func (rtuo *RefreshTokensUpdateOne) SetNillableSessionIDID(id *string) *RefreshTokensUpdateOne {
+	if id != nil {
+		rtuo = rtuo.SetSessionIDID(*id)
+	}
+	return rtuo
+}
+
+// SetSessionID sets the "session_id" edge to the Session entity.
+func (rtuo *RefreshTokensUpdateOne) SetSessionID(s *Session) *RefreshTokensUpdateOne {
+	return rtuo.SetSessionIDID(s.ID)
 }
 
 // Mutation returns the RefreshTokensMutation object of the builder.
@@ -182,9 +479,15 @@ func (rtuo *RefreshTokensUpdateOne) Mutation() *RefreshTokensMutation {
 	return rtuo.mutation
 }
 
-// ClearRequestID clears the "request_id" edge to the Request entity.
-func (rtuo *RefreshTokensUpdateOne) ClearRequestID() *RefreshTokensUpdateOne {
-	rtuo.mutation.ClearRequestID()
+// ClearClientID clears the "client_id" edge to the Clients entity.
+func (rtuo *RefreshTokensUpdateOne) ClearClientID() *RefreshTokensUpdateOne {
+	rtuo.mutation.ClearClientID()
+	return rtuo
+}
+
+// ClearSessionID clears the "session_id" edge to the Session entity.
+func (rtuo *RefreshTokensUpdateOne) ClearSessionID() *RefreshTokensUpdateOne {
+	rtuo.mutation.ClearSessionID()
 	return rtuo
 }
 
@@ -254,31 +557,107 @@ func (rtuo *RefreshTokensUpdateOne) sqlSave(ctx context.Context) (_node *Refresh
 			}
 		}
 	}
+	if value, ok := rtuo.mutation.RequestID(); ok {
+		_spec.SetField(refreshtokens.FieldRequestID, field.TypeString, value)
+	}
+	if value, ok := rtuo.mutation.RequestedAt(); ok {
+		_spec.SetField(refreshtokens.FieldRequestedAt, field.TypeTime, value)
+	}
+	if value, ok := rtuo.mutation.Scopes(); ok {
+		_spec.SetField(refreshtokens.FieldScopes, field.TypeJSON, value)
+	}
+	if value, ok := rtuo.mutation.AppendedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, refreshtokens.FieldScopes, value)
+		})
+	}
+	if value, ok := rtuo.mutation.GrantedScopes(); ok {
+		_spec.SetField(refreshtokens.FieldGrantedScopes, field.TypeJSON, value)
+	}
+	if value, ok := rtuo.mutation.AppendedGrantedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, refreshtokens.FieldGrantedScopes, value)
+		})
+	}
+	if value, ok := rtuo.mutation.RequestedAudience(); ok {
+		_spec.SetField(refreshtokens.FieldRequestedAudience, field.TypeJSON, value)
+	}
+	if value, ok := rtuo.mutation.AppendedRequestedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, refreshtokens.FieldRequestedAudience, value)
+		})
+	}
+	if value, ok := rtuo.mutation.GrantedAudience(); ok {
+		_spec.SetField(refreshtokens.FieldGrantedAudience, field.TypeJSON, value)
+	}
+	if value, ok := rtuo.mutation.AppendedGrantedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, refreshtokens.FieldGrantedAudience, value)
+		})
+	}
+	if value, ok := rtuo.mutation.Form(); ok {
+		_spec.SetField(refreshtokens.FieldForm, field.TypeJSON, value)
+	}
+	if value, ok := rtuo.mutation.Lang(); ok {
+		_spec.SetField(refreshtokens.FieldLang, field.TypeJSON, value)
+	}
+	if rtuo.mutation.LangCleared() {
+		_spec.ClearField(refreshtokens.FieldLang, field.TypeJSON)
+	}
 	if value, ok := rtuo.mutation.Active(); ok {
 		_spec.SetField(refreshtokens.FieldActive, field.TypeBool, value)
 	}
-	if rtuo.mutation.RequestIDCleared() {
+	if rtuo.mutation.ClientIDCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   refreshtokens.RequestIDTable,
-			Columns: []string{refreshtokens.RequestIDColumn},
+			Table:   refreshtokens.ClientIDTable,
+			Columns: []string{refreshtokens.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rtuo.mutation.RequestIDIDs(); len(nodes) > 0 {
+	if nodes := rtuo.mutation.ClientIDIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   refreshtokens.RequestIDTable,
-			Columns: []string{refreshtokens.RequestIDColumn},
+			Table:   refreshtokens.ClientIDTable,
+			Columns: []string{refreshtokens.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rtuo.mutation.SessionIDCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   refreshtokens.SessionIDTable,
+			Columns: []string{refreshtokens.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rtuo.mutation.SessionIDIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   refreshtokens.SessionIDTable,
+			Columns: []string{refreshtokens.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

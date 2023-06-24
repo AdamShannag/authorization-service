@@ -3,16 +3,21 @@
 package ent
 
 import (
+	"authorization-service/ent/clients"
 	"authorization-service/ent/idsessions"
 	"authorization-service/ent/predicate"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
+	"golang.org/x/text/language"
 )
 
 // IDSessionsUpdate is the builder for updating IDSessions entities.
@@ -28,23 +33,128 @@ func (isu *IDSessionsUpdate) Where(ps ...predicate.IDSessions) *IDSessionsUpdate
 	return isu
 }
 
-// SetRequestIDID sets the "request_id" edge to the Request entity by ID.
-func (isu *IDSessionsUpdate) SetRequestIDID(id string) *IDSessionsUpdate {
-	isu.mutation.SetRequestIDID(id)
+// SetRequestID sets the "request_id" field.
+func (isu *IDSessionsUpdate) SetRequestID(s string) *IDSessionsUpdate {
+	isu.mutation.SetRequestID(s)
 	return isu
 }
 
-// SetNillableRequestIDID sets the "request_id" edge to the Request entity by ID if the given value is not nil.
-func (isu *IDSessionsUpdate) SetNillableRequestIDID(id *string) *IDSessionsUpdate {
-	if id != nil {
-		isu = isu.SetRequestIDID(*id)
+// SetRequestedAt sets the "requestedAt" field.
+func (isu *IDSessionsUpdate) SetRequestedAt(t time.Time) *IDSessionsUpdate {
+	isu.mutation.SetRequestedAt(t)
+	return isu
+}
+
+// SetScopes sets the "scopes" field.
+func (isu *IDSessionsUpdate) SetScopes(s []string) *IDSessionsUpdate {
+	isu.mutation.SetScopes(s)
+	return isu
+}
+
+// AppendScopes appends s to the "scopes" field.
+func (isu *IDSessionsUpdate) AppendScopes(s []string) *IDSessionsUpdate {
+	isu.mutation.AppendScopes(s)
+	return isu
+}
+
+// SetGrantedScopes sets the "granted_scopes" field.
+func (isu *IDSessionsUpdate) SetGrantedScopes(s []string) *IDSessionsUpdate {
+	isu.mutation.SetGrantedScopes(s)
+	return isu
+}
+
+// AppendGrantedScopes appends s to the "granted_scopes" field.
+func (isu *IDSessionsUpdate) AppendGrantedScopes(s []string) *IDSessionsUpdate {
+	isu.mutation.AppendGrantedScopes(s)
+	return isu
+}
+
+// SetRequestedAudience sets the "requested_audience" field.
+func (isu *IDSessionsUpdate) SetRequestedAudience(s []string) *IDSessionsUpdate {
+	isu.mutation.SetRequestedAudience(s)
+	return isu
+}
+
+// AppendRequestedAudience appends s to the "requested_audience" field.
+func (isu *IDSessionsUpdate) AppendRequestedAudience(s []string) *IDSessionsUpdate {
+	isu.mutation.AppendRequestedAudience(s)
+	return isu
+}
+
+// SetGrantedAudience sets the "granted_audience" field.
+func (isu *IDSessionsUpdate) SetGrantedAudience(s []string) *IDSessionsUpdate {
+	isu.mutation.SetGrantedAudience(s)
+	return isu
+}
+
+// AppendGrantedAudience appends s to the "granted_audience" field.
+func (isu *IDSessionsUpdate) AppendGrantedAudience(s []string) *IDSessionsUpdate {
+	isu.mutation.AppendGrantedAudience(s)
+	return isu
+}
+
+// SetForm sets the "form" field.
+func (isu *IDSessionsUpdate) SetForm(u url.Values) *IDSessionsUpdate {
+	isu.mutation.SetForm(u)
+	return isu
+}
+
+// SetLang sets the "lang" field.
+func (isu *IDSessionsUpdate) SetLang(l language.Tag) *IDSessionsUpdate {
+	isu.mutation.SetLang(l)
+	return isu
+}
+
+// SetNillableLang sets the "lang" field if the given value is not nil.
+func (isu *IDSessionsUpdate) SetNillableLang(l *language.Tag) *IDSessionsUpdate {
+	if l != nil {
+		isu.SetLang(*l)
 	}
 	return isu
 }
 
-// SetRequestID sets the "request_id" edge to the Request entity.
-func (isu *IDSessionsUpdate) SetRequestID(r *Request) *IDSessionsUpdate {
-	return isu.SetRequestIDID(r.ID)
+// ClearLang clears the value of the "lang" field.
+func (isu *IDSessionsUpdate) ClearLang() *IDSessionsUpdate {
+	isu.mutation.ClearLang()
+	return isu
+}
+
+// SetClientIDID sets the "client_id" edge to the Clients entity by ID.
+func (isu *IDSessionsUpdate) SetClientIDID(id string) *IDSessionsUpdate {
+	isu.mutation.SetClientIDID(id)
+	return isu
+}
+
+// SetNillableClientIDID sets the "client_id" edge to the Clients entity by ID if the given value is not nil.
+func (isu *IDSessionsUpdate) SetNillableClientIDID(id *string) *IDSessionsUpdate {
+	if id != nil {
+		isu = isu.SetClientIDID(*id)
+	}
+	return isu
+}
+
+// SetClientID sets the "client_id" edge to the Clients entity.
+func (isu *IDSessionsUpdate) SetClientID(c *Clients) *IDSessionsUpdate {
+	return isu.SetClientIDID(c.ID)
+}
+
+// SetSessionIDID sets the "session_id" edge to the Session entity by ID.
+func (isu *IDSessionsUpdate) SetSessionIDID(id string) *IDSessionsUpdate {
+	isu.mutation.SetSessionIDID(id)
+	return isu
+}
+
+// SetNillableSessionIDID sets the "session_id" edge to the Session entity by ID if the given value is not nil.
+func (isu *IDSessionsUpdate) SetNillableSessionIDID(id *string) *IDSessionsUpdate {
+	if id != nil {
+		isu = isu.SetSessionIDID(*id)
+	}
+	return isu
+}
+
+// SetSessionID sets the "session_id" edge to the Session entity.
+func (isu *IDSessionsUpdate) SetSessionID(s *Session) *IDSessionsUpdate {
+	return isu.SetSessionIDID(s.ID)
 }
 
 // Mutation returns the IDSessionsMutation object of the builder.
@@ -52,9 +162,15 @@ func (isu *IDSessionsUpdate) Mutation() *IDSessionsMutation {
 	return isu.mutation
 }
 
-// ClearRequestID clears the "request_id" edge to the Request entity.
-func (isu *IDSessionsUpdate) ClearRequestID() *IDSessionsUpdate {
-	isu.mutation.ClearRequestID()
+// ClearClientID clears the "client_id" edge to the Clients entity.
+func (isu *IDSessionsUpdate) ClearClientID() *IDSessionsUpdate {
+	isu.mutation.ClearClientID()
+	return isu
+}
+
+// ClearSessionID clears the "session_id" edge to the Session entity.
+func (isu *IDSessionsUpdate) ClearSessionID() *IDSessionsUpdate {
+	isu.mutation.ClearSessionID()
 	return isu
 }
 
@@ -94,28 +210,104 @@ func (isu *IDSessionsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if isu.mutation.RequestIDCleared() {
+	if value, ok := isu.mutation.RequestID(); ok {
+		_spec.SetField(idsessions.FieldRequestID, field.TypeString, value)
+	}
+	if value, ok := isu.mutation.RequestedAt(); ok {
+		_spec.SetField(idsessions.FieldRequestedAt, field.TypeTime, value)
+	}
+	if value, ok := isu.mutation.Scopes(); ok {
+		_spec.SetField(idsessions.FieldScopes, field.TypeJSON, value)
+	}
+	if value, ok := isu.mutation.AppendedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, idsessions.FieldScopes, value)
+		})
+	}
+	if value, ok := isu.mutation.GrantedScopes(); ok {
+		_spec.SetField(idsessions.FieldGrantedScopes, field.TypeJSON, value)
+	}
+	if value, ok := isu.mutation.AppendedGrantedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, idsessions.FieldGrantedScopes, value)
+		})
+	}
+	if value, ok := isu.mutation.RequestedAudience(); ok {
+		_spec.SetField(idsessions.FieldRequestedAudience, field.TypeJSON, value)
+	}
+	if value, ok := isu.mutation.AppendedRequestedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, idsessions.FieldRequestedAudience, value)
+		})
+	}
+	if value, ok := isu.mutation.GrantedAudience(); ok {
+		_spec.SetField(idsessions.FieldGrantedAudience, field.TypeJSON, value)
+	}
+	if value, ok := isu.mutation.AppendedGrantedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, idsessions.FieldGrantedAudience, value)
+		})
+	}
+	if value, ok := isu.mutation.Form(); ok {
+		_spec.SetField(idsessions.FieldForm, field.TypeJSON, value)
+	}
+	if value, ok := isu.mutation.Lang(); ok {
+		_spec.SetField(idsessions.FieldLang, field.TypeJSON, value)
+	}
+	if isu.mutation.LangCleared() {
+		_spec.ClearField(idsessions.FieldLang, field.TypeJSON)
+	}
+	if isu.mutation.ClientIDCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   idsessions.RequestIDTable,
-			Columns: []string{idsessions.RequestIDColumn},
+			Table:   idsessions.ClientIDTable,
+			Columns: []string{idsessions.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := isu.mutation.RequestIDIDs(); len(nodes) > 0 {
+	if nodes := isu.mutation.ClientIDIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   idsessions.RequestIDTable,
-			Columns: []string{idsessions.RequestIDColumn},
+			Table:   idsessions.ClientIDTable,
+			Columns: []string{idsessions.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if isu.mutation.SessionIDCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   idsessions.SessionIDTable,
+			Columns: []string{idsessions.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := isu.mutation.SessionIDIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   idsessions.SessionIDTable,
+			Columns: []string{idsessions.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -143,23 +335,128 @@ type IDSessionsUpdateOne struct {
 	mutation *IDSessionsMutation
 }
 
-// SetRequestIDID sets the "request_id" edge to the Request entity by ID.
-func (isuo *IDSessionsUpdateOne) SetRequestIDID(id string) *IDSessionsUpdateOne {
-	isuo.mutation.SetRequestIDID(id)
+// SetRequestID sets the "request_id" field.
+func (isuo *IDSessionsUpdateOne) SetRequestID(s string) *IDSessionsUpdateOne {
+	isuo.mutation.SetRequestID(s)
 	return isuo
 }
 
-// SetNillableRequestIDID sets the "request_id" edge to the Request entity by ID if the given value is not nil.
-func (isuo *IDSessionsUpdateOne) SetNillableRequestIDID(id *string) *IDSessionsUpdateOne {
-	if id != nil {
-		isuo = isuo.SetRequestIDID(*id)
+// SetRequestedAt sets the "requestedAt" field.
+func (isuo *IDSessionsUpdateOne) SetRequestedAt(t time.Time) *IDSessionsUpdateOne {
+	isuo.mutation.SetRequestedAt(t)
+	return isuo
+}
+
+// SetScopes sets the "scopes" field.
+func (isuo *IDSessionsUpdateOne) SetScopes(s []string) *IDSessionsUpdateOne {
+	isuo.mutation.SetScopes(s)
+	return isuo
+}
+
+// AppendScopes appends s to the "scopes" field.
+func (isuo *IDSessionsUpdateOne) AppendScopes(s []string) *IDSessionsUpdateOne {
+	isuo.mutation.AppendScopes(s)
+	return isuo
+}
+
+// SetGrantedScopes sets the "granted_scopes" field.
+func (isuo *IDSessionsUpdateOne) SetGrantedScopes(s []string) *IDSessionsUpdateOne {
+	isuo.mutation.SetGrantedScopes(s)
+	return isuo
+}
+
+// AppendGrantedScopes appends s to the "granted_scopes" field.
+func (isuo *IDSessionsUpdateOne) AppendGrantedScopes(s []string) *IDSessionsUpdateOne {
+	isuo.mutation.AppendGrantedScopes(s)
+	return isuo
+}
+
+// SetRequestedAudience sets the "requested_audience" field.
+func (isuo *IDSessionsUpdateOne) SetRequestedAudience(s []string) *IDSessionsUpdateOne {
+	isuo.mutation.SetRequestedAudience(s)
+	return isuo
+}
+
+// AppendRequestedAudience appends s to the "requested_audience" field.
+func (isuo *IDSessionsUpdateOne) AppendRequestedAudience(s []string) *IDSessionsUpdateOne {
+	isuo.mutation.AppendRequestedAudience(s)
+	return isuo
+}
+
+// SetGrantedAudience sets the "granted_audience" field.
+func (isuo *IDSessionsUpdateOne) SetGrantedAudience(s []string) *IDSessionsUpdateOne {
+	isuo.mutation.SetGrantedAudience(s)
+	return isuo
+}
+
+// AppendGrantedAudience appends s to the "granted_audience" field.
+func (isuo *IDSessionsUpdateOne) AppendGrantedAudience(s []string) *IDSessionsUpdateOne {
+	isuo.mutation.AppendGrantedAudience(s)
+	return isuo
+}
+
+// SetForm sets the "form" field.
+func (isuo *IDSessionsUpdateOne) SetForm(u url.Values) *IDSessionsUpdateOne {
+	isuo.mutation.SetForm(u)
+	return isuo
+}
+
+// SetLang sets the "lang" field.
+func (isuo *IDSessionsUpdateOne) SetLang(l language.Tag) *IDSessionsUpdateOne {
+	isuo.mutation.SetLang(l)
+	return isuo
+}
+
+// SetNillableLang sets the "lang" field if the given value is not nil.
+func (isuo *IDSessionsUpdateOne) SetNillableLang(l *language.Tag) *IDSessionsUpdateOne {
+	if l != nil {
+		isuo.SetLang(*l)
 	}
 	return isuo
 }
 
-// SetRequestID sets the "request_id" edge to the Request entity.
-func (isuo *IDSessionsUpdateOne) SetRequestID(r *Request) *IDSessionsUpdateOne {
-	return isuo.SetRequestIDID(r.ID)
+// ClearLang clears the value of the "lang" field.
+func (isuo *IDSessionsUpdateOne) ClearLang() *IDSessionsUpdateOne {
+	isuo.mutation.ClearLang()
+	return isuo
+}
+
+// SetClientIDID sets the "client_id" edge to the Clients entity by ID.
+func (isuo *IDSessionsUpdateOne) SetClientIDID(id string) *IDSessionsUpdateOne {
+	isuo.mutation.SetClientIDID(id)
+	return isuo
+}
+
+// SetNillableClientIDID sets the "client_id" edge to the Clients entity by ID if the given value is not nil.
+func (isuo *IDSessionsUpdateOne) SetNillableClientIDID(id *string) *IDSessionsUpdateOne {
+	if id != nil {
+		isuo = isuo.SetClientIDID(*id)
+	}
+	return isuo
+}
+
+// SetClientID sets the "client_id" edge to the Clients entity.
+func (isuo *IDSessionsUpdateOne) SetClientID(c *Clients) *IDSessionsUpdateOne {
+	return isuo.SetClientIDID(c.ID)
+}
+
+// SetSessionIDID sets the "session_id" edge to the Session entity by ID.
+func (isuo *IDSessionsUpdateOne) SetSessionIDID(id string) *IDSessionsUpdateOne {
+	isuo.mutation.SetSessionIDID(id)
+	return isuo
+}
+
+// SetNillableSessionIDID sets the "session_id" edge to the Session entity by ID if the given value is not nil.
+func (isuo *IDSessionsUpdateOne) SetNillableSessionIDID(id *string) *IDSessionsUpdateOne {
+	if id != nil {
+		isuo = isuo.SetSessionIDID(*id)
+	}
+	return isuo
+}
+
+// SetSessionID sets the "session_id" edge to the Session entity.
+func (isuo *IDSessionsUpdateOne) SetSessionID(s *Session) *IDSessionsUpdateOne {
+	return isuo.SetSessionIDID(s.ID)
 }
 
 // Mutation returns the IDSessionsMutation object of the builder.
@@ -167,9 +464,15 @@ func (isuo *IDSessionsUpdateOne) Mutation() *IDSessionsMutation {
 	return isuo.mutation
 }
 
-// ClearRequestID clears the "request_id" edge to the Request entity.
-func (isuo *IDSessionsUpdateOne) ClearRequestID() *IDSessionsUpdateOne {
-	isuo.mutation.ClearRequestID()
+// ClearClientID clears the "client_id" edge to the Clients entity.
+func (isuo *IDSessionsUpdateOne) ClearClientID() *IDSessionsUpdateOne {
+	isuo.mutation.ClearClientID()
+	return isuo
+}
+
+// ClearSessionID clears the "session_id" edge to the Session entity.
+func (isuo *IDSessionsUpdateOne) ClearSessionID() *IDSessionsUpdateOne {
+	isuo.mutation.ClearSessionID()
 	return isuo
 }
 
@@ -239,28 +542,104 @@ func (isuo *IDSessionsUpdateOne) sqlSave(ctx context.Context) (_node *IDSessions
 			}
 		}
 	}
-	if isuo.mutation.RequestIDCleared() {
+	if value, ok := isuo.mutation.RequestID(); ok {
+		_spec.SetField(idsessions.FieldRequestID, field.TypeString, value)
+	}
+	if value, ok := isuo.mutation.RequestedAt(); ok {
+		_spec.SetField(idsessions.FieldRequestedAt, field.TypeTime, value)
+	}
+	if value, ok := isuo.mutation.Scopes(); ok {
+		_spec.SetField(idsessions.FieldScopes, field.TypeJSON, value)
+	}
+	if value, ok := isuo.mutation.AppendedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, idsessions.FieldScopes, value)
+		})
+	}
+	if value, ok := isuo.mutation.GrantedScopes(); ok {
+		_spec.SetField(idsessions.FieldGrantedScopes, field.TypeJSON, value)
+	}
+	if value, ok := isuo.mutation.AppendedGrantedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, idsessions.FieldGrantedScopes, value)
+		})
+	}
+	if value, ok := isuo.mutation.RequestedAudience(); ok {
+		_spec.SetField(idsessions.FieldRequestedAudience, field.TypeJSON, value)
+	}
+	if value, ok := isuo.mutation.AppendedRequestedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, idsessions.FieldRequestedAudience, value)
+		})
+	}
+	if value, ok := isuo.mutation.GrantedAudience(); ok {
+		_spec.SetField(idsessions.FieldGrantedAudience, field.TypeJSON, value)
+	}
+	if value, ok := isuo.mutation.AppendedGrantedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, idsessions.FieldGrantedAudience, value)
+		})
+	}
+	if value, ok := isuo.mutation.Form(); ok {
+		_spec.SetField(idsessions.FieldForm, field.TypeJSON, value)
+	}
+	if value, ok := isuo.mutation.Lang(); ok {
+		_spec.SetField(idsessions.FieldLang, field.TypeJSON, value)
+	}
+	if isuo.mutation.LangCleared() {
+		_spec.ClearField(idsessions.FieldLang, field.TypeJSON)
+	}
+	if isuo.mutation.ClientIDCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   idsessions.RequestIDTable,
-			Columns: []string{idsessions.RequestIDColumn},
+			Table:   idsessions.ClientIDTable,
+			Columns: []string{idsessions.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := isuo.mutation.RequestIDIDs(); len(nodes) > 0 {
+	if nodes := isuo.mutation.ClientIDIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   idsessions.RequestIDTable,
-			Columns: []string{idsessions.RequestIDColumn},
+			Table:   idsessions.ClientIDTable,
+			Columns: []string{idsessions.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if isuo.mutation.SessionIDCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   idsessions.SessionIDTable,
+			Columns: []string{idsessions.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := isuo.mutation.SessionIDIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   idsessions.SessionIDTable,
+			Columns: []string{idsessions.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

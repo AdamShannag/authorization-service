@@ -11,7 +11,16 @@ var (
 	// AccessTokensColumns holds the columns for the "access_tokens" table.
 	AccessTokensColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "request_access_token", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "request_id", Type: field.TypeString},
+		{Name: "requested_at", Type: field.TypeTime},
+		{Name: "scopes", Type: field.TypeJSON},
+		{Name: "granted_scopes", Type: field.TypeJSON},
+		{Name: "requested_audience", Type: field.TypeJSON},
+		{Name: "granted_audience", Type: field.TypeJSON},
+		{Name: "form", Type: field.TypeJSON},
+		{Name: "lang", Type: field.TypeJSON, Nullable: true},
+		{Name: "clients_access_token", Type: field.TypeString, Nullable: true},
+		{Name: "session_access_token", Type: field.TypeString, Nullable: true},
 	}
 	// AccessTokensTable holds the schema information for the "access_tokens" table.
 	AccessTokensTable = &schema.Table{
@@ -20,9 +29,15 @@ var (
 		PrimaryKey: []*schema.Column{AccessTokensColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "access_tokens_requests_access_token",
-				Columns:    []*schema.Column{AccessTokensColumns[1]},
-				RefColumns: []*schema.Column{RequestsColumns[0]},
+				Symbol:     "access_tokens_clients_access_token",
+				Columns:    []*schema.Column{AccessTokensColumns[9]},
+				RefColumns: []*schema.Column{ClientsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "access_tokens_sessions_access_token",
+				Columns:    []*schema.Column{AccessTokensColumns[10]},
+				RefColumns: []*schema.Column{SessionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -30,8 +45,17 @@ var (
 	// AuthorizeCodesColumns holds the columns for the "authorize_codes" table.
 	AuthorizeCodesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "request_id", Type: field.TypeString},
+		{Name: "requested_at", Type: field.TypeTime},
+		{Name: "scopes", Type: field.TypeJSON},
+		{Name: "granted_scopes", Type: field.TypeJSON},
+		{Name: "requested_audience", Type: field.TypeJSON},
+		{Name: "granted_audience", Type: field.TypeJSON},
+		{Name: "form", Type: field.TypeJSON},
+		{Name: "lang", Type: field.TypeJSON, Nullable: true},
 		{Name: "active", Type: field.TypeBool},
-		{Name: "request_authorize_code", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "clients_authorize_code", Type: field.TypeString, Nullable: true},
+		{Name: "session_authorize_code", Type: field.TypeString, Nullable: true},
 	}
 	// AuthorizeCodesTable holds the schema information for the "authorize_codes" table.
 	AuthorizeCodesTable = &schema.Table{
@@ -40,9 +64,15 @@ var (
 		PrimaryKey: []*schema.Column{AuthorizeCodesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "authorize_codes_requests_authorize_code",
-				Columns:    []*schema.Column{AuthorizeCodesColumns[2]},
-				RefColumns: []*schema.Column{RequestsColumns[0]},
+				Symbol:     "authorize_codes_clients_authorize_code",
+				Columns:    []*schema.Column{AuthorizeCodesColumns[10]},
+				RefColumns: []*schema.Column{ClientsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "authorize_codes_sessions_authorize_code",
+				Columns:    []*schema.Column{AuthorizeCodesColumns[11]},
+				RefColumns: []*schema.Column{SessionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -79,7 +109,16 @@ var (
 	// IDSessionsColumns holds the columns for the "id_sessions" table.
 	IDSessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "request_id_session", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "request_id", Type: field.TypeString},
+		{Name: "requested_at", Type: field.TypeTime},
+		{Name: "scopes", Type: field.TypeJSON},
+		{Name: "granted_scopes", Type: field.TypeJSON},
+		{Name: "requested_audience", Type: field.TypeJSON},
+		{Name: "granted_audience", Type: field.TypeJSON},
+		{Name: "form", Type: field.TypeJSON},
+		{Name: "lang", Type: field.TypeJSON, Nullable: true},
+		{Name: "clients_id_session", Type: field.TypeString, Nullable: true},
+		{Name: "session_id_session", Type: field.TypeString, Nullable: true},
 	}
 	// IDSessionsTable holds the schema information for the "id_sessions" table.
 	IDSessionsTable = &schema.Table{
@@ -88,9 +127,15 @@ var (
 		PrimaryKey: []*schema.Column{IDSessionsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "id_sessions_requests_id_session",
-				Columns:    []*schema.Column{IDSessionsColumns[1]},
-				RefColumns: []*schema.Column{RequestsColumns[0]},
+				Symbol:     "id_sessions_clients_id_session",
+				Columns:    []*schema.Column{IDSessionsColumns[9]},
+				RefColumns: []*schema.Column{ClientsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "id_sessions_sessions_id_session",
+				Columns:    []*schema.Column{IDSessionsColumns[10]},
+				RefColumns: []*schema.Column{SessionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -108,7 +153,16 @@ var (
 	// PkceSsColumns holds the columns for the "pkce_ss" table.
 	PkceSsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "request_pkce", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "request_id", Type: field.TypeString},
+		{Name: "requested_at", Type: field.TypeTime},
+		{Name: "scopes", Type: field.TypeJSON},
+		{Name: "granted_scopes", Type: field.TypeJSON},
+		{Name: "requested_audience", Type: field.TypeJSON},
+		{Name: "granted_audience", Type: field.TypeJSON},
+		{Name: "form", Type: field.TypeJSON},
+		{Name: "lang", Type: field.TypeJSON, Nullable: true},
+		{Name: "clients_pkce", Type: field.TypeString, Nullable: true},
+		{Name: "session_pkce", Type: field.TypeString, Nullable: true},
 	}
 	// PkceSsTable holds the schema information for the "pkce_ss" table.
 	PkceSsTable = &schema.Table{
@@ -117,9 +171,15 @@ var (
 		PrimaryKey: []*schema.Column{PkceSsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "pkce_ss_requests_pkce",
-				Columns:    []*schema.Column{PkceSsColumns[1]},
-				RefColumns: []*schema.Column{RequestsColumns[0]},
+				Symbol:     "pkce_ss_clients_pkce",
+				Columns:    []*schema.Column{PkceSsColumns[9]},
+				RefColumns: []*schema.Column{ClientsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "pkce_ss_sessions_pkce",
+				Columns:    []*schema.Column{PkceSsColumns[10]},
+				RefColumns: []*schema.Column{SessionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -148,8 +208,17 @@ var (
 	// RefreshTokensColumns holds the columns for the "refresh_tokens" table.
 	RefreshTokensColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "request_id", Type: field.TypeString},
+		{Name: "requested_at", Type: field.TypeTime},
+		{Name: "scopes", Type: field.TypeJSON},
+		{Name: "granted_scopes", Type: field.TypeJSON},
+		{Name: "requested_audience", Type: field.TypeJSON},
+		{Name: "granted_audience", Type: field.TypeJSON},
+		{Name: "form", Type: field.TypeJSON},
+		{Name: "lang", Type: field.TypeJSON, Nullable: true},
 		{Name: "active", Type: field.TypeBool},
-		{Name: "request_refresh_token", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "clients_refresh_token", Type: field.TypeString, Nullable: true},
+		{Name: "session_refresh_token", Type: field.TypeString, Nullable: true},
 	}
 	// RefreshTokensTable holds the schema information for the "refresh_tokens" table.
 	RefreshTokensTable = &schema.Table{
@@ -158,41 +227,14 @@ var (
 		PrimaryKey: []*schema.Column{RefreshTokensColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "refresh_tokens_requests_refresh_token",
-				Columns:    []*schema.Column{RefreshTokensColumns[2]},
-				RefColumns: []*schema.Column{RequestsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
-	// RequestsColumns holds the columns for the "requests" table.
-	RequestsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "requested_at", Type: field.TypeTime},
-		{Name: "scopes", Type: field.TypeJSON},
-		{Name: "granted_scopes", Type: field.TypeJSON},
-		{Name: "requested_audience", Type: field.TypeJSON},
-		{Name: "granted_audience", Type: field.TypeJSON},
-		{Name: "form", Type: field.TypeJSON},
-		{Name: "lang", Type: field.TypeJSON, Nullable: true},
-		{Name: "clients_requests", Type: field.TypeString, Nullable: true},
-		{Name: "session_requests", Type: field.TypeString, Nullable: true},
-	}
-	// RequestsTable holds the schema information for the "requests" table.
-	RequestsTable = &schema.Table{
-		Name:       "requests",
-		Columns:    RequestsColumns,
-		PrimaryKey: []*schema.Column{RequestsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "requests_clients_requests",
-				Columns:    []*schema.Column{RequestsColumns[8]},
+				Symbol:     "refresh_tokens_clients_refresh_token",
+				Columns:    []*schema.Column{RefreshTokensColumns[10]},
 				RefColumns: []*schema.Column{ClientsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "requests_sessions_requests",
-				Columns:    []*schema.Column{RequestsColumns[9]},
+				Symbol:     "refresh_tokens_sessions_refresh_token",
+				Columns:    []*schema.Column{RefreshTokensColumns[11]},
 				RefColumns: []*schema.Column{SessionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -202,9 +244,10 @@ var (
 	SessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "expires_at", Type: field.TypeJSON},
-		{Name: "username", Type: field.TypeString},
-		{Name: "subject", Type: field.TypeString},
+		{Name: "username", Type: field.TypeString, Nullable: true},
+		{Name: "subject", Type: field.TypeString, Nullable: true},
 		{Name: "extra", Type: field.TypeJSON, Nullable: true},
+		{Name: "session", Type: field.TypeJSON, Nullable: true},
 	}
 	// SessionsTable holds the schema information for the "sessions" table.
 	SessionsTable = &schema.Table{
@@ -233,8 +276,7 @@ var (
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "username", Type: field.TypeString, Unique: true},
+		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -254,7 +296,6 @@ var (
 		PkceSsTable,
 		PublicKeyScopesTable,
 		RefreshTokensTable,
-		RequestsTable,
 		SessionsTable,
 		SubjectPublicKeysTable,
 		UsersTable,
@@ -262,13 +303,16 @@ var (
 )
 
 func init() {
-	AccessTokensTable.ForeignKeys[0].RefTable = RequestsTable
-	AuthorizeCodesTable.ForeignKeys[0].RefTable = RequestsTable
-	IDSessionsTable.ForeignKeys[0].RefTable = RequestsTable
-	PkceSsTable.ForeignKeys[0].RefTable = RequestsTable
+	AccessTokensTable.ForeignKeys[0].RefTable = ClientsTable
+	AccessTokensTable.ForeignKeys[1].RefTable = SessionsTable
+	AuthorizeCodesTable.ForeignKeys[0].RefTable = ClientsTable
+	AuthorizeCodesTable.ForeignKeys[1].RefTable = SessionsTable
+	IDSessionsTable.ForeignKeys[0].RefTable = ClientsTable
+	IDSessionsTable.ForeignKeys[1].RefTable = SessionsTable
+	PkceSsTable.ForeignKeys[0].RefTable = ClientsTable
+	PkceSsTable.ForeignKeys[1].RefTable = SessionsTable
 	PublicKeyScopesTable.ForeignKeys[0].RefTable = SubjectPublicKeysTable
-	RefreshTokensTable.ForeignKeys[0].RefTable = RequestsTable
-	RequestsTable.ForeignKeys[0].RefTable = ClientsTable
-	RequestsTable.ForeignKeys[1].RefTable = SessionsTable
+	RefreshTokensTable.ForeignKeys[0].RefTable = ClientsTable
+	RefreshTokensTable.ForeignKeys[1].RefTable = SessionsTable
 	SubjectPublicKeysTable.ForeignKeys[0].RefTable = IssuerPublicKeysTable
 }

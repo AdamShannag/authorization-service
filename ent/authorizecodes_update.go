@@ -4,15 +4,20 @@ package ent
 
 import (
 	"authorization-service/ent/authorizecodes"
+	"authorization-service/ent/clients"
 	"authorization-service/ent/predicate"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
+	"golang.org/x/text/language"
 )
 
 // AuthorizeCodesUpdate is the builder for updating AuthorizeCodes entities.
@@ -28,29 +33,134 @@ func (acu *AuthorizeCodesUpdate) Where(ps ...predicate.AuthorizeCodes) *Authoriz
 	return acu
 }
 
+// SetRequestID sets the "request_id" field.
+func (acu *AuthorizeCodesUpdate) SetRequestID(s string) *AuthorizeCodesUpdate {
+	acu.mutation.SetRequestID(s)
+	return acu
+}
+
+// SetRequestedAt sets the "requestedAt" field.
+func (acu *AuthorizeCodesUpdate) SetRequestedAt(t time.Time) *AuthorizeCodesUpdate {
+	acu.mutation.SetRequestedAt(t)
+	return acu
+}
+
+// SetScopes sets the "scopes" field.
+func (acu *AuthorizeCodesUpdate) SetScopes(s []string) *AuthorizeCodesUpdate {
+	acu.mutation.SetScopes(s)
+	return acu
+}
+
+// AppendScopes appends s to the "scopes" field.
+func (acu *AuthorizeCodesUpdate) AppendScopes(s []string) *AuthorizeCodesUpdate {
+	acu.mutation.AppendScopes(s)
+	return acu
+}
+
+// SetGrantedScopes sets the "granted_scopes" field.
+func (acu *AuthorizeCodesUpdate) SetGrantedScopes(s []string) *AuthorizeCodesUpdate {
+	acu.mutation.SetGrantedScopes(s)
+	return acu
+}
+
+// AppendGrantedScopes appends s to the "granted_scopes" field.
+func (acu *AuthorizeCodesUpdate) AppendGrantedScopes(s []string) *AuthorizeCodesUpdate {
+	acu.mutation.AppendGrantedScopes(s)
+	return acu
+}
+
+// SetRequestedAudience sets the "requested_audience" field.
+func (acu *AuthorizeCodesUpdate) SetRequestedAudience(s []string) *AuthorizeCodesUpdate {
+	acu.mutation.SetRequestedAudience(s)
+	return acu
+}
+
+// AppendRequestedAudience appends s to the "requested_audience" field.
+func (acu *AuthorizeCodesUpdate) AppendRequestedAudience(s []string) *AuthorizeCodesUpdate {
+	acu.mutation.AppendRequestedAudience(s)
+	return acu
+}
+
+// SetGrantedAudience sets the "granted_audience" field.
+func (acu *AuthorizeCodesUpdate) SetGrantedAudience(s []string) *AuthorizeCodesUpdate {
+	acu.mutation.SetGrantedAudience(s)
+	return acu
+}
+
+// AppendGrantedAudience appends s to the "granted_audience" field.
+func (acu *AuthorizeCodesUpdate) AppendGrantedAudience(s []string) *AuthorizeCodesUpdate {
+	acu.mutation.AppendGrantedAudience(s)
+	return acu
+}
+
+// SetForm sets the "form" field.
+func (acu *AuthorizeCodesUpdate) SetForm(u url.Values) *AuthorizeCodesUpdate {
+	acu.mutation.SetForm(u)
+	return acu
+}
+
+// SetLang sets the "lang" field.
+func (acu *AuthorizeCodesUpdate) SetLang(l language.Tag) *AuthorizeCodesUpdate {
+	acu.mutation.SetLang(l)
+	return acu
+}
+
+// SetNillableLang sets the "lang" field if the given value is not nil.
+func (acu *AuthorizeCodesUpdate) SetNillableLang(l *language.Tag) *AuthorizeCodesUpdate {
+	if l != nil {
+		acu.SetLang(*l)
+	}
+	return acu
+}
+
+// ClearLang clears the value of the "lang" field.
+func (acu *AuthorizeCodesUpdate) ClearLang() *AuthorizeCodesUpdate {
+	acu.mutation.ClearLang()
+	return acu
+}
+
 // SetActive sets the "active" field.
 func (acu *AuthorizeCodesUpdate) SetActive(b bool) *AuthorizeCodesUpdate {
 	acu.mutation.SetActive(b)
 	return acu
 }
 
-// SetRequestIDID sets the "request_id" edge to the Request entity by ID.
-func (acu *AuthorizeCodesUpdate) SetRequestIDID(id string) *AuthorizeCodesUpdate {
-	acu.mutation.SetRequestIDID(id)
+// SetClientIDID sets the "client_id" edge to the Clients entity by ID.
+func (acu *AuthorizeCodesUpdate) SetClientIDID(id string) *AuthorizeCodesUpdate {
+	acu.mutation.SetClientIDID(id)
 	return acu
 }
 
-// SetNillableRequestIDID sets the "request_id" edge to the Request entity by ID if the given value is not nil.
-func (acu *AuthorizeCodesUpdate) SetNillableRequestIDID(id *string) *AuthorizeCodesUpdate {
+// SetNillableClientIDID sets the "client_id" edge to the Clients entity by ID if the given value is not nil.
+func (acu *AuthorizeCodesUpdate) SetNillableClientIDID(id *string) *AuthorizeCodesUpdate {
 	if id != nil {
-		acu = acu.SetRequestIDID(*id)
+		acu = acu.SetClientIDID(*id)
 	}
 	return acu
 }
 
-// SetRequestID sets the "request_id" edge to the Request entity.
-func (acu *AuthorizeCodesUpdate) SetRequestID(r *Request) *AuthorizeCodesUpdate {
-	return acu.SetRequestIDID(r.ID)
+// SetClientID sets the "client_id" edge to the Clients entity.
+func (acu *AuthorizeCodesUpdate) SetClientID(c *Clients) *AuthorizeCodesUpdate {
+	return acu.SetClientIDID(c.ID)
+}
+
+// SetSessionIDID sets the "session_id" edge to the Session entity by ID.
+func (acu *AuthorizeCodesUpdate) SetSessionIDID(id string) *AuthorizeCodesUpdate {
+	acu.mutation.SetSessionIDID(id)
+	return acu
+}
+
+// SetNillableSessionIDID sets the "session_id" edge to the Session entity by ID if the given value is not nil.
+func (acu *AuthorizeCodesUpdate) SetNillableSessionIDID(id *string) *AuthorizeCodesUpdate {
+	if id != nil {
+		acu = acu.SetSessionIDID(*id)
+	}
+	return acu
+}
+
+// SetSessionID sets the "session_id" edge to the Session entity.
+func (acu *AuthorizeCodesUpdate) SetSessionID(s *Session) *AuthorizeCodesUpdate {
+	return acu.SetSessionIDID(s.ID)
 }
 
 // Mutation returns the AuthorizeCodesMutation object of the builder.
@@ -58,9 +168,15 @@ func (acu *AuthorizeCodesUpdate) Mutation() *AuthorizeCodesMutation {
 	return acu.mutation
 }
 
-// ClearRequestID clears the "request_id" edge to the Request entity.
-func (acu *AuthorizeCodesUpdate) ClearRequestID() *AuthorizeCodesUpdate {
-	acu.mutation.ClearRequestID()
+// ClearClientID clears the "client_id" edge to the Clients entity.
+func (acu *AuthorizeCodesUpdate) ClearClientID() *AuthorizeCodesUpdate {
+	acu.mutation.ClearClientID()
+	return acu
+}
+
+// ClearSessionID clears the "session_id" edge to the Session entity.
+func (acu *AuthorizeCodesUpdate) ClearSessionID() *AuthorizeCodesUpdate {
+	acu.mutation.ClearSessionID()
 	return acu
 }
 
@@ -100,31 +216,107 @@ func (acu *AuthorizeCodesUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 		}
 	}
+	if value, ok := acu.mutation.RequestID(); ok {
+		_spec.SetField(authorizecodes.FieldRequestID, field.TypeString, value)
+	}
+	if value, ok := acu.mutation.RequestedAt(); ok {
+		_spec.SetField(authorizecodes.FieldRequestedAt, field.TypeTime, value)
+	}
+	if value, ok := acu.mutation.Scopes(); ok {
+		_spec.SetField(authorizecodes.FieldScopes, field.TypeJSON, value)
+	}
+	if value, ok := acu.mutation.AppendedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, authorizecodes.FieldScopes, value)
+		})
+	}
+	if value, ok := acu.mutation.GrantedScopes(); ok {
+		_spec.SetField(authorizecodes.FieldGrantedScopes, field.TypeJSON, value)
+	}
+	if value, ok := acu.mutation.AppendedGrantedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, authorizecodes.FieldGrantedScopes, value)
+		})
+	}
+	if value, ok := acu.mutation.RequestedAudience(); ok {
+		_spec.SetField(authorizecodes.FieldRequestedAudience, field.TypeJSON, value)
+	}
+	if value, ok := acu.mutation.AppendedRequestedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, authorizecodes.FieldRequestedAudience, value)
+		})
+	}
+	if value, ok := acu.mutation.GrantedAudience(); ok {
+		_spec.SetField(authorizecodes.FieldGrantedAudience, field.TypeJSON, value)
+	}
+	if value, ok := acu.mutation.AppendedGrantedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, authorizecodes.FieldGrantedAudience, value)
+		})
+	}
+	if value, ok := acu.mutation.Form(); ok {
+		_spec.SetField(authorizecodes.FieldForm, field.TypeJSON, value)
+	}
+	if value, ok := acu.mutation.Lang(); ok {
+		_spec.SetField(authorizecodes.FieldLang, field.TypeJSON, value)
+	}
+	if acu.mutation.LangCleared() {
+		_spec.ClearField(authorizecodes.FieldLang, field.TypeJSON)
+	}
 	if value, ok := acu.mutation.Active(); ok {
 		_spec.SetField(authorizecodes.FieldActive, field.TypeBool, value)
 	}
-	if acu.mutation.RequestIDCleared() {
+	if acu.mutation.ClientIDCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   authorizecodes.RequestIDTable,
-			Columns: []string{authorizecodes.RequestIDColumn},
+			Table:   authorizecodes.ClientIDTable,
+			Columns: []string{authorizecodes.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := acu.mutation.RequestIDIDs(); len(nodes) > 0 {
+	if nodes := acu.mutation.ClientIDIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   authorizecodes.RequestIDTable,
-			Columns: []string{authorizecodes.RequestIDColumn},
+			Table:   authorizecodes.ClientIDTable,
+			Columns: []string{authorizecodes.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if acu.mutation.SessionIDCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   authorizecodes.SessionIDTable,
+			Columns: []string{authorizecodes.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := acu.mutation.SessionIDIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   authorizecodes.SessionIDTable,
+			Columns: []string{authorizecodes.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -152,29 +344,134 @@ type AuthorizeCodesUpdateOne struct {
 	mutation *AuthorizeCodesMutation
 }
 
+// SetRequestID sets the "request_id" field.
+func (acuo *AuthorizeCodesUpdateOne) SetRequestID(s string) *AuthorizeCodesUpdateOne {
+	acuo.mutation.SetRequestID(s)
+	return acuo
+}
+
+// SetRequestedAt sets the "requestedAt" field.
+func (acuo *AuthorizeCodesUpdateOne) SetRequestedAt(t time.Time) *AuthorizeCodesUpdateOne {
+	acuo.mutation.SetRequestedAt(t)
+	return acuo
+}
+
+// SetScopes sets the "scopes" field.
+func (acuo *AuthorizeCodesUpdateOne) SetScopes(s []string) *AuthorizeCodesUpdateOne {
+	acuo.mutation.SetScopes(s)
+	return acuo
+}
+
+// AppendScopes appends s to the "scopes" field.
+func (acuo *AuthorizeCodesUpdateOne) AppendScopes(s []string) *AuthorizeCodesUpdateOne {
+	acuo.mutation.AppendScopes(s)
+	return acuo
+}
+
+// SetGrantedScopes sets the "granted_scopes" field.
+func (acuo *AuthorizeCodesUpdateOne) SetGrantedScopes(s []string) *AuthorizeCodesUpdateOne {
+	acuo.mutation.SetGrantedScopes(s)
+	return acuo
+}
+
+// AppendGrantedScopes appends s to the "granted_scopes" field.
+func (acuo *AuthorizeCodesUpdateOne) AppendGrantedScopes(s []string) *AuthorizeCodesUpdateOne {
+	acuo.mutation.AppendGrantedScopes(s)
+	return acuo
+}
+
+// SetRequestedAudience sets the "requested_audience" field.
+func (acuo *AuthorizeCodesUpdateOne) SetRequestedAudience(s []string) *AuthorizeCodesUpdateOne {
+	acuo.mutation.SetRequestedAudience(s)
+	return acuo
+}
+
+// AppendRequestedAudience appends s to the "requested_audience" field.
+func (acuo *AuthorizeCodesUpdateOne) AppendRequestedAudience(s []string) *AuthorizeCodesUpdateOne {
+	acuo.mutation.AppendRequestedAudience(s)
+	return acuo
+}
+
+// SetGrantedAudience sets the "granted_audience" field.
+func (acuo *AuthorizeCodesUpdateOne) SetGrantedAudience(s []string) *AuthorizeCodesUpdateOne {
+	acuo.mutation.SetGrantedAudience(s)
+	return acuo
+}
+
+// AppendGrantedAudience appends s to the "granted_audience" field.
+func (acuo *AuthorizeCodesUpdateOne) AppendGrantedAudience(s []string) *AuthorizeCodesUpdateOne {
+	acuo.mutation.AppendGrantedAudience(s)
+	return acuo
+}
+
+// SetForm sets the "form" field.
+func (acuo *AuthorizeCodesUpdateOne) SetForm(u url.Values) *AuthorizeCodesUpdateOne {
+	acuo.mutation.SetForm(u)
+	return acuo
+}
+
+// SetLang sets the "lang" field.
+func (acuo *AuthorizeCodesUpdateOne) SetLang(l language.Tag) *AuthorizeCodesUpdateOne {
+	acuo.mutation.SetLang(l)
+	return acuo
+}
+
+// SetNillableLang sets the "lang" field if the given value is not nil.
+func (acuo *AuthorizeCodesUpdateOne) SetNillableLang(l *language.Tag) *AuthorizeCodesUpdateOne {
+	if l != nil {
+		acuo.SetLang(*l)
+	}
+	return acuo
+}
+
+// ClearLang clears the value of the "lang" field.
+func (acuo *AuthorizeCodesUpdateOne) ClearLang() *AuthorizeCodesUpdateOne {
+	acuo.mutation.ClearLang()
+	return acuo
+}
+
 // SetActive sets the "active" field.
 func (acuo *AuthorizeCodesUpdateOne) SetActive(b bool) *AuthorizeCodesUpdateOne {
 	acuo.mutation.SetActive(b)
 	return acuo
 }
 
-// SetRequestIDID sets the "request_id" edge to the Request entity by ID.
-func (acuo *AuthorizeCodesUpdateOne) SetRequestIDID(id string) *AuthorizeCodesUpdateOne {
-	acuo.mutation.SetRequestIDID(id)
+// SetClientIDID sets the "client_id" edge to the Clients entity by ID.
+func (acuo *AuthorizeCodesUpdateOne) SetClientIDID(id string) *AuthorizeCodesUpdateOne {
+	acuo.mutation.SetClientIDID(id)
 	return acuo
 }
 
-// SetNillableRequestIDID sets the "request_id" edge to the Request entity by ID if the given value is not nil.
-func (acuo *AuthorizeCodesUpdateOne) SetNillableRequestIDID(id *string) *AuthorizeCodesUpdateOne {
+// SetNillableClientIDID sets the "client_id" edge to the Clients entity by ID if the given value is not nil.
+func (acuo *AuthorizeCodesUpdateOne) SetNillableClientIDID(id *string) *AuthorizeCodesUpdateOne {
 	if id != nil {
-		acuo = acuo.SetRequestIDID(*id)
+		acuo = acuo.SetClientIDID(*id)
 	}
 	return acuo
 }
 
-// SetRequestID sets the "request_id" edge to the Request entity.
-func (acuo *AuthorizeCodesUpdateOne) SetRequestID(r *Request) *AuthorizeCodesUpdateOne {
-	return acuo.SetRequestIDID(r.ID)
+// SetClientID sets the "client_id" edge to the Clients entity.
+func (acuo *AuthorizeCodesUpdateOne) SetClientID(c *Clients) *AuthorizeCodesUpdateOne {
+	return acuo.SetClientIDID(c.ID)
+}
+
+// SetSessionIDID sets the "session_id" edge to the Session entity by ID.
+func (acuo *AuthorizeCodesUpdateOne) SetSessionIDID(id string) *AuthorizeCodesUpdateOne {
+	acuo.mutation.SetSessionIDID(id)
+	return acuo
+}
+
+// SetNillableSessionIDID sets the "session_id" edge to the Session entity by ID if the given value is not nil.
+func (acuo *AuthorizeCodesUpdateOne) SetNillableSessionIDID(id *string) *AuthorizeCodesUpdateOne {
+	if id != nil {
+		acuo = acuo.SetSessionIDID(*id)
+	}
+	return acuo
+}
+
+// SetSessionID sets the "session_id" edge to the Session entity.
+func (acuo *AuthorizeCodesUpdateOne) SetSessionID(s *Session) *AuthorizeCodesUpdateOne {
+	return acuo.SetSessionIDID(s.ID)
 }
 
 // Mutation returns the AuthorizeCodesMutation object of the builder.
@@ -182,9 +479,15 @@ func (acuo *AuthorizeCodesUpdateOne) Mutation() *AuthorizeCodesMutation {
 	return acuo.mutation
 }
 
-// ClearRequestID clears the "request_id" edge to the Request entity.
-func (acuo *AuthorizeCodesUpdateOne) ClearRequestID() *AuthorizeCodesUpdateOne {
-	acuo.mutation.ClearRequestID()
+// ClearClientID clears the "client_id" edge to the Clients entity.
+func (acuo *AuthorizeCodesUpdateOne) ClearClientID() *AuthorizeCodesUpdateOne {
+	acuo.mutation.ClearClientID()
+	return acuo
+}
+
+// ClearSessionID clears the "session_id" edge to the Session entity.
+func (acuo *AuthorizeCodesUpdateOne) ClearSessionID() *AuthorizeCodesUpdateOne {
+	acuo.mutation.ClearSessionID()
 	return acuo
 }
 
@@ -254,31 +557,107 @@ func (acuo *AuthorizeCodesUpdateOne) sqlSave(ctx context.Context) (_node *Author
 			}
 		}
 	}
+	if value, ok := acuo.mutation.RequestID(); ok {
+		_spec.SetField(authorizecodes.FieldRequestID, field.TypeString, value)
+	}
+	if value, ok := acuo.mutation.RequestedAt(); ok {
+		_spec.SetField(authorizecodes.FieldRequestedAt, field.TypeTime, value)
+	}
+	if value, ok := acuo.mutation.Scopes(); ok {
+		_spec.SetField(authorizecodes.FieldScopes, field.TypeJSON, value)
+	}
+	if value, ok := acuo.mutation.AppendedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, authorizecodes.FieldScopes, value)
+		})
+	}
+	if value, ok := acuo.mutation.GrantedScopes(); ok {
+		_spec.SetField(authorizecodes.FieldGrantedScopes, field.TypeJSON, value)
+	}
+	if value, ok := acuo.mutation.AppendedGrantedScopes(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, authorizecodes.FieldGrantedScopes, value)
+		})
+	}
+	if value, ok := acuo.mutation.RequestedAudience(); ok {
+		_spec.SetField(authorizecodes.FieldRequestedAudience, field.TypeJSON, value)
+	}
+	if value, ok := acuo.mutation.AppendedRequestedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, authorizecodes.FieldRequestedAudience, value)
+		})
+	}
+	if value, ok := acuo.mutation.GrantedAudience(); ok {
+		_spec.SetField(authorizecodes.FieldGrantedAudience, field.TypeJSON, value)
+	}
+	if value, ok := acuo.mutation.AppendedGrantedAudience(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, authorizecodes.FieldGrantedAudience, value)
+		})
+	}
+	if value, ok := acuo.mutation.Form(); ok {
+		_spec.SetField(authorizecodes.FieldForm, field.TypeJSON, value)
+	}
+	if value, ok := acuo.mutation.Lang(); ok {
+		_spec.SetField(authorizecodes.FieldLang, field.TypeJSON, value)
+	}
+	if acuo.mutation.LangCleared() {
+		_spec.ClearField(authorizecodes.FieldLang, field.TypeJSON)
+	}
 	if value, ok := acuo.mutation.Active(); ok {
 		_spec.SetField(authorizecodes.FieldActive, field.TypeBool, value)
 	}
-	if acuo.mutation.RequestIDCleared() {
+	if acuo.mutation.ClientIDCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   authorizecodes.RequestIDTable,
-			Columns: []string{authorizecodes.RequestIDColumn},
+			Table:   authorizecodes.ClientIDTable,
+			Columns: []string{authorizecodes.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := acuo.mutation.RequestIDIDs(); len(nodes) > 0 {
+	if nodes := acuo.mutation.ClientIDIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   authorizecodes.RequestIDTable,
-			Columns: []string{authorizecodes.RequestIDColumn},
+			Table:   authorizecodes.ClientIDTable,
+			Columns: []string{authorizecodes.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if acuo.mutation.SessionIDCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   authorizecodes.SessionIDTable,
+			Columns: []string{authorizecodes.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := acuo.mutation.SessionIDIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   authorizecodes.SessionIDTable,
+			Columns: []string{authorizecodes.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

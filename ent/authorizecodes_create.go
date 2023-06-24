@@ -4,13 +4,17 @@ package ent
 
 import (
 	"authorization-service/ent/authorizecodes"
-	"authorization-service/ent/request"
+	"authorization-service/ent/clients"
+	"authorization-service/ent/session"
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"golang.org/x/text/language"
 )
 
 // AuthorizeCodesCreate is the builder for creating a AuthorizeCodes entity.
@@ -18,6 +22,62 @@ type AuthorizeCodesCreate struct {
 	config
 	mutation *AuthorizeCodesMutation
 	hooks    []Hook
+}
+
+// SetRequestID sets the "request_id" field.
+func (acc *AuthorizeCodesCreate) SetRequestID(s string) *AuthorizeCodesCreate {
+	acc.mutation.SetRequestID(s)
+	return acc
+}
+
+// SetRequestedAt sets the "requestedAt" field.
+func (acc *AuthorizeCodesCreate) SetRequestedAt(t time.Time) *AuthorizeCodesCreate {
+	acc.mutation.SetRequestedAt(t)
+	return acc
+}
+
+// SetScopes sets the "scopes" field.
+func (acc *AuthorizeCodesCreate) SetScopes(s []string) *AuthorizeCodesCreate {
+	acc.mutation.SetScopes(s)
+	return acc
+}
+
+// SetGrantedScopes sets the "granted_scopes" field.
+func (acc *AuthorizeCodesCreate) SetGrantedScopes(s []string) *AuthorizeCodesCreate {
+	acc.mutation.SetGrantedScopes(s)
+	return acc
+}
+
+// SetRequestedAudience sets the "requested_audience" field.
+func (acc *AuthorizeCodesCreate) SetRequestedAudience(s []string) *AuthorizeCodesCreate {
+	acc.mutation.SetRequestedAudience(s)
+	return acc
+}
+
+// SetGrantedAudience sets the "granted_audience" field.
+func (acc *AuthorizeCodesCreate) SetGrantedAudience(s []string) *AuthorizeCodesCreate {
+	acc.mutation.SetGrantedAudience(s)
+	return acc
+}
+
+// SetForm sets the "form" field.
+func (acc *AuthorizeCodesCreate) SetForm(u url.Values) *AuthorizeCodesCreate {
+	acc.mutation.SetForm(u)
+	return acc
+}
+
+// SetLang sets the "lang" field.
+func (acc *AuthorizeCodesCreate) SetLang(l language.Tag) *AuthorizeCodesCreate {
+	acc.mutation.SetLang(l)
+	return acc
+}
+
+// SetNillableLang sets the "lang" field if the given value is not nil.
+func (acc *AuthorizeCodesCreate) SetNillableLang(l *language.Tag) *AuthorizeCodesCreate {
+	if l != nil {
+		acc.SetLang(*l)
+	}
+	return acc
 }
 
 // SetActive sets the "active" field.
@@ -32,23 +92,42 @@ func (acc *AuthorizeCodesCreate) SetID(s string) *AuthorizeCodesCreate {
 	return acc
 }
 
-// SetRequestIDID sets the "request_id" edge to the Request entity by ID.
-func (acc *AuthorizeCodesCreate) SetRequestIDID(id string) *AuthorizeCodesCreate {
-	acc.mutation.SetRequestIDID(id)
+// SetClientIDID sets the "client_id" edge to the Clients entity by ID.
+func (acc *AuthorizeCodesCreate) SetClientIDID(id string) *AuthorizeCodesCreate {
+	acc.mutation.SetClientIDID(id)
 	return acc
 }
 
-// SetNillableRequestIDID sets the "request_id" edge to the Request entity by ID if the given value is not nil.
-func (acc *AuthorizeCodesCreate) SetNillableRequestIDID(id *string) *AuthorizeCodesCreate {
+// SetNillableClientIDID sets the "client_id" edge to the Clients entity by ID if the given value is not nil.
+func (acc *AuthorizeCodesCreate) SetNillableClientIDID(id *string) *AuthorizeCodesCreate {
 	if id != nil {
-		acc = acc.SetRequestIDID(*id)
+		acc = acc.SetClientIDID(*id)
 	}
 	return acc
 }
 
-// SetRequestID sets the "request_id" edge to the Request entity.
-func (acc *AuthorizeCodesCreate) SetRequestID(r *Request) *AuthorizeCodesCreate {
-	return acc.SetRequestIDID(r.ID)
+// SetClientID sets the "client_id" edge to the Clients entity.
+func (acc *AuthorizeCodesCreate) SetClientID(c *Clients) *AuthorizeCodesCreate {
+	return acc.SetClientIDID(c.ID)
+}
+
+// SetSessionIDID sets the "session_id" edge to the Session entity by ID.
+func (acc *AuthorizeCodesCreate) SetSessionIDID(id string) *AuthorizeCodesCreate {
+	acc.mutation.SetSessionIDID(id)
+	return acc
+}
+
+// SetNillableSessionIDID sets the "session_id" edge to the Session entity by ID if the given value is not nil.
+func (acc *AuthorizeCodesCreate) SetNillableSessionIDID(id *string) *AuthorizeCodesCreate {
+	if id != nil {
+		acc = acc.SetSessionIDID(*id)
+	}
+	return acc
+}
+
+// SetSessionID sets the "session_id" edge to the Session entity.
+func (acc *AuthorizeCodesCreate) SetSessionID(s *Session) *AuthorizeCodesCreate {
+	return acc.SetSessionIDID(s.ID)
 }
 
 // Mutation returns the AuthorizeCodesMutation object of the builder.
@@ -85,6 +164,27 @@ func (acc *AuthorizeCodesCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (acc *AuthorizeCodesCreate) check() error {
+	if _, ok := acc.mutation.RequestID(); !ok {
+		return &ValidationError{Name: "request_id", err: errors.New(`ent: missing required field "AuthorizeCodes.request_id"`)}
+	}
+	if _, ok := acc.mutation.RequestedAt(); !ok {
+		return &ValidationError{Name: "requestedAt", err: errors.New(`ent: missing required field "AuthorizeCodes.requestedAt"`)}
+	}
+	if _, ok := acc.mutation.Scopes(); !ok {
+		return &ValidationError{Name: "scopes", err: errors.New(`ent: missing required field "AuthorizeCodes.scopes"`)}
+	}
+	if _, ok := acc.mutation.GrantedScopes(); !ok {
+		return &ValidationError{Name: "granted_scopes", err: errors.New(`ent: missing required field "AuthorizeCodes.granted_scopes"`)}
+	}
+	if _, ok := acc.mutation.RequestedAudience(); !ok {
+		return &ValidationError{Name: "requested_audience", err: errors.New(`ent: missing required field "AuthorizeCodes.requested_audience"`)}
+	}
+	if _, ok := acc.mutation.GrantedAudience(); !ok {
+		return &ValidationError{Name: "granted_audience", err: errors.New(`ent: missing required field "AuthorizeCodes.granted_audience"`)}
+	}
+	if _, ok := acc.mutation.Form(); !ok {
+		return &ValidationError{Name: "form", err: errors.New(`ent: missing required field "AuthorizeCodes.form"`)}
+	}
 	if _, ok := acc.mutation.Active(); !ok {
 		return &ValidationError{Name: "active", err: errors.New(`ent: missing required field "AuthorizeCodes.active"`)}
 	}
@@ -123,25 +223,74 @@ func (acc *AuthorizeCodesCreate) createSpec() (*AuthorizeCodes, *sqlgraph.Create
 		_node.ID = id
 		_spec.ID.Value = id
 	}
+	if value, ok := acc.mutation.RequestID(); ok {
+		_spec.SetField(authorizecodes.FieldRequestID, field.TypeString, value)
+		_node.RequestID = value
+	}
+	if value, ok := acc.mutation.RequestedAt(); ok {
+		_spec.SetField(authorizecodes.FieldRequestedAt, field.TypeTime, value)
+		_node.RequestedAt = value
+	}
+	if value, ok := acc.mutation.Scopes(); ok {
+		_spec.SetField(authorizecodes.FieldScopes, field.TypeJSON, value)
+		_node.Scopes = value
+	}
+	if value, ok := acc.mutation.GrantedScopes(); ok {
+		_spec.SetField(authorizecodes.FieldGrantedScopes, field.TypeJSON, value)
+		_node.GrantedScopes = value
+	}
+	if value, ok := acc.mutation.RequestedAudience(); ok {
+		_spec.SetField(authorizecodes.FieldRequestedAudience, field.TypeJSON, value)
+		_node.RequestedAudience = value
+	}
+	if value, ok := acc.mutation.GrantedAudience(); ok {
+		_spec.SetField(authorizecodes.FieldGrantedAudience, field.TypeJSON, value)
+		_node.GrantedAudience = value
+	}
+	if value, ok := acc.mutation.Form(); ok {
+		_spec.SetField(authorizecodes.FieldForm, field.TypeJSON, value)
+		_node.Form = value
+	}
+	if value, ok := acc.mutation.Lang(); ok {
+		_spec.SetField(authorizecodes.FieldLang, field.TypeJSON, value)
+		_node.Lang = value
+	}
 	if value, ok := acc.mutation.Active(); ok {
 		_spec.SetField(authorizecodes.FieldActive, field.TypeBool, value)
 		_node.Active = value
 	}
-	if nodes := acc.mutation.RequestIDIDs(); len(nodes) > 0 {
+	if nodes := acc.mutation.ClientIDIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   authorizecodes.RequestIDTable,
-			Columns: []string{authorizecodes.RequestIDColumn},
+			Table:   authorizecodes.ClientIDTable,
+			Columns: []string{authorizecodes.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.request_authorize_code = &nodes[0]
+		_node.clients_authorize_code = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := acc.mutation.SessionIDIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   authorizecodes.SessionIDTable,
+			Columns: []string{authorizecodes.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.session_authorize_code = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

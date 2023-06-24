@@ -3,47 +3,84 @@
 package ent
 
 import (
+	"authorization-service/ent/clients"
 	"authorization-service/ent/idsessions"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"golang.org/x/text/language"
 )
 
 // IDSessions is the model entity for the IDSessions schema.
 type IDSessions struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
+	// RequestID holds the value of the "request_id" field.
+	RequestID string `json:"request_id,omitempty"`
+	// RequestedAt holds the value of the "requestedAt" field.
+	RequestedAt time.Time `json:"requestedAt,omitempty"`
+	// Scopes holds the value of the "scopes" field.
+	Scopes []string `json:"scopes,omitempty"`
+	// GrantedScopes holds the value of the "granted_scopes" field.
+	GrantedScopes []string `json:"granted_scopes,omitempty"`
+	// RequestedAudience holds the value of the "requested_audience" field.
+	RequestedAudience []string `json:"requested_audience,omitempty"`
+	// GrantedAudience holds the value of the "granted_audience" field.
+	GrantedAudience []string `json:"granted_audience,omitempty"`
+	// Form holds the value of the "form" field.
+	Form url.Values `json:"form,omitempty"`
+	// Lang holds the value of the "lang" field.
+	Lang language.Tag `json:"lang,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the IDSessionsQuery when eager-loading is set.
 	Edges              IDSessionsEdges `json:"edges"`
-	request_id_session *string
+	clients_id_session *string
+	session_id_session *string
 	selectValues       sql.SelectValues
 }
 
 // IDSessionsEdges holds the relations/edges for other nodes in the graph.
 type IDSessionsEdges struct {
-	// RequestID holds the value of the request_id edge.
-	RequestID *Request `json:"request_id,omitempty"`
+	// ClientID holds the value of the client_id edge.
+	ClientID *Clients `json:"client_id,omitempty"`
+	// SessionID holds the value of the session_id edge.
+	SessionID *Session `json:"session_id,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
-// RequestIDOrErr returns the RequestID value or an error if the edge
+// ClientIDOrErr returns the ClientID value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e IDSessionsEdges) RequestIDOrErr() (*Request, error) {
+func (e IDSessionsEdges) ClientIDOrErr() (*Clients, error) {
 	if e.loadedTypes[0] {
-		if e.RequestID == nil {
+		if e.ClientID == nil {
 			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: request.Label}
+			return nil, &NotFoundError{label: clients.Label}
 		}
-		return e.RequestID, nil
+		return e.ClientID, nil
 	}
-	return nil, &NotLoadedError{edge: "request_id"}
+	return nil, &NotLoadedError{edge: "client_id"}
+}
+
+// SessionIDOrErr returns the SessionID value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e IDSessionsEdges) SessionIDOrErr() (*Session, error) {
+	if e.loadedTypes[1] {
+		if e.SessionID == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: session.Label}
+		}
+		return e.SessionID, nil
+	}
+	return nil, &NotLoadedError{edge: "session_id"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -51,9 +88,15 @@ func (*IDSessions) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case idsessions.FieldID:
+		case idsessions.FieldScopes, idsessions.FieldGrantedScopes, idsessions.FieldRequestedAudience, idsessions.FieldGrantedAudience, idsessions.FieldForm, idsessions.FieldLang:
+			values[i] = new([]byte)
+		case idsessions.FieldID, idsessions.FieldRequestID:
 			values[i] = new(sql.NullString)
-		case idsessions.ForeignKeys[0]: // request_id_session
+		case idsessions.FieldRequestedAt:
+			values[i] = new(sql.NullTime)
+		case idsessions.ForeignKeys[0]: // clients_id_session
+			values[i] = new(sql.NullString)
+		case idsessions.ForeignKeys[1]: // session_id_session
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -76,12 +119,79 @@ func (is *IDSessions) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				is.ID = value.String
 			}
+		case idsessions.FieldRequestID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field request_id", values[i])
+			} else if value.Valid {
+				is.RequestID = value.String
+			}
+		case idsessions.FieldRequestedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field requestedAt", values[i])
+			} else if value.Valid {
+				is.RequestedAt = value.Time
+			}
+		case idsessions.FieldScopes:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field scopes", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &is.Scopes); err != nil {
+					return fmt.Errorf("unmarshal field scopes: %w", err)
+				}
+			}
+		case idsessions.FieldGrantedScopes:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field granted_scopes", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &is.GrantedScopes); err != nil {
+					return fmt.Errorf("unmarshal field granted_scopes: %w", err)
+				}
+			}
+		case idsessions.FieldRequestedAudience:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field requested_audience", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &is.RequestedAudience); err != nil {
+					return fmt.Errorf("unmarshal field requested_audience: %w", err)
+				}
+			}
+		case idsessions.FieldGrantedAudience:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field granted_audience", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &is.GrantedAudience); err != nil {
+					return fmt.Errorf("unmarshal field granted_audience: %w", err)
+				}
+			}
+		case idsessions.FieldForm:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field form", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &is.Form); err != nil {
+					return fmt.Errorf("unmarshal field form: %w", err)
+				}
+			}
+		case idsessions.FieldLang:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field lang", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &is.Lang); err != nil {
+					return fmt.Errorf("unmarshal field lang: %w", err)
+				}
+			}
 		case idsessions.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field request_id_session", values[i])
+				return fmt.Errorf("unexpected type %T for field clients_id_session", values[i])
 			} else if value.Valid {
-				is.request_id_session = new(string)
-				*is.request_id_session = value.String
+				is.clients_id_session = new(string)
+				*is.clients_id_session = value.String
+			}
+		case idsessions.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field session_id_session", values[i])
+			} else if value.Valid {
+				is.session_id_session = new(string)
+				*is.session_id_session = value.String
 			}
 		default:
 			is.selectValues.Set(columns[i], values[i])
@@ -96,9 +206,14 @@ func (is *IDSessions) Value(name string) (ent.Value, error) {
 	return is.selectValues.Get(name)
 }
 
-// QueryRequestID queries the "request_id" edge of the IDSessions entity.
-func (is *IDSessions) QueryRequestID() *RequestQuery {
-	return NewIDSessionsClient(is.config).QueryRequestID(is)
+// QueryClientID queries the "client_id" edge of the IDSessions entity.
+func (is *IDSessions) QueryClientID() *ClientsQuery {
+	return NewIDSessionsClient(is.config).QueryClientID(is)
+}
+
+// QuerySessionID queries the "session_id" edge of the IDSessions entity.
+func (is *IDSessions) QuerySessionID() *SessionQuery {
+	return NewIDSessionsClient(is.config).QuerySessionID(is)
 }
 
 // Update returns a builder for updating this IDSessions.
@@ -123,7 +238,30 @@ func (is *IDSessions) Unwrap() *IDSessions {
 func (is *IDSessions) String() string {
 	var builder strings.Builder
 	builder.WriteString("IDSessions(")
-	builder.WriteString(fmt.Sprintf("id=%v", is.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", is.ID))
+	builder.WriteString("request_id=")
+	builder.WriteString(is.RequestID)
+	builder.WriteString(", ")
+	builder.WriteString("requestedAt=")
+	builder.WriteString(is.RequestedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("scopes=")
+	builder.WriteString(fmt.Sprintf("%v", is.Scopes))
+	builder.WriteString(", ")
+	builder.WriteString("granted_scopes=")
+	builder.WriteString(fmt.Sprintf("%v", is.GrantedScopes))
+	builder.WriteString(", ")
+	builder.WriteString("requested_audience=")
+	builder.WriteString(fmt.Sprintf("%v", is.RequestedAudience))
+	builder.WriteString(", ")
+	builder.WriteString("granted_audience=")
+	builder.WriteString(fmt.Sprintf("%v", is.GrantedAudience))
+	builder.WriteString(", ")
+	builder.WriteString("form=")
+	builder.WriteString(fmt.Sprintf("%v", is.Form))
+	builder.WriteString(", ")
+	builder.WriteString("lang=")
+	builder.WriteString(fmt.Sprintf("%v", is.Lang))
 	builder.WriteByte(')')
 	return builder.String()
 }

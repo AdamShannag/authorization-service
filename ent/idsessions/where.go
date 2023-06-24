@@ -4,6 +4,7 @@ package idsessions
 
 import (
 	"authorization-service/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -64,21 +65,169 @@ func IDContainsFold(id string) predicate.IDSessions {
 	return predicate.IDSessions(sql.FieldContainsFold(FieldID, id))
 }
 
-// HasRequestID applies the HasEdge predicate on the "request_id" edge.
-func HasRequestID() predicate.IDSessions {
+// RequestID applies equality check predicate on the "request_id" field. It's identical to RequestIDEQ.
+func RequestID(v string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldEQ(FieldRequestID, v))
+}
+
+// RequestedAt applies equality check predicate on the "requestedAt" field. It's identical to RequestedAtEQ.
+func RequestedAt(v time.Time) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldEQ(FieldRequestedAt, v))
+}
+
+// RequestIDEQ applies the EQ predicate on the "request_id" field.
+func RequestIDEQ(v string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldEQ(FieldRequestID, v))
+}
+
+// RequestIDNEQ applies the NEQ predicate on the "request_id" field.
+func RequestIDNEQ(v string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldNEQ(FieldRequestID, v))
+}
+
+// RequestIDIn applies the In predicate on the "request_id" field.
+func RequestIDIn(vs ...string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldIn(FieldRequestID, vs...))
+}
+
+// RequestIDNotIn applies the NotIn predicate on the "request_id" field.
+func RequestIDNotIn(vs ...string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldNotIn(FieldRequestID, vs...))
+}
+
+// RequestIDGT applies the GT predicate on the "request_id" field.
+func RequestIDGT(v string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldGT(FieldRequestID, v))
+}
+
+// RequestIDGTE applies the GTE predicate on the "request_id" field.
+func RequestIDGTE(v string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldGTE(FieldRequestID, v))
+}
+
+// RequestIDLT applies the LT predicate on the "request_id" field.
+func RequestIDLT(v string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldLT(FieldRequestID, v))
+}
+
+// RequestIDLTE applies the LTE predicate on the "request_id" field.
+func RequestIDLTE(v string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldLTE(FieldRequestID, v))
+}
+
+// RequestIDContains applies the Contains predicate on the "request_id" field.
+func RequestIDContains(v string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldContains(FieldRequestID, v))
+}
+
+// RequestIDHasPrefix applies the HasPrefix predicate on the "request_id" field.
+func RequestIDHasPrefix(v string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldHasPrefix(FieldRequestID, v))
+}
+
+// RequestIDHasSuffix applies the HasSuffix predicate on the "request_id" field.
+func RequestIDHasSuffix(v string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldHasSuffix(FieldRequestID, v))
+}
+
+// RequestIDEqualFold applies the EqualFold predicate on the "request_id" field.
+func RequestIDEqualFold(v string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldEqualFold(FieldRequestID, v))
+}
+
+// RequestIDContainsFold applies the ContainsFold predicate on the "request_id" field.
+func RequestIDContainsFold(v string) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldContainsFold(FieldRequestID, v))
+}
+
+// RequestedAtEQ applies the EQ predicate on the "requestedAt" field.
+func RequestedAtEQ(v time.Time) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldEQ(FieldRequestedAt, v))
+}
+
+// RequestedAtNEQ applies the NEQ predicate on the "requestedAt" field.
+func RequestedAtNEQ(v time.Time) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldNEQ(FieldRequestedAt, v))
+}
+
+// RequestedAtIn applies the In predicate on the "requestedAt" field.
+func RequestedAtIn(vs ...time.Time) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldIn(FieldRequestedAt, vs...))
+}
+
+// RequestedAtNotIn applies the NotIn predicate on the "requestedAt" field.
+func RequestedAtNotIn(vs ...time.Time) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldNotIn(FieldRequestedAt, vs...))
+}
+
+// RequestedAtGT applies the GT predicate on the "requestedAt" field.
+func RequestedAtGT(v time.Time) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldGT(FieldRequestedAt, v))
+}
+
+// RequestedAtGTE applies the GTE predicate on the "requestedAt" field.
+func RequestedAtGTE(v time.Time) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldGTE(FieldRequestedAt, v))
+}
+
+// RequestedAtLT applies the LT predicate on the "requestedAt" field.
+func RequestedAtLT(v time.Time) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldLT(FieldRequestedAt, v))
+}
+
+// RequestedAtLTE applies the LTE predicate on the "requestedAt" field.
+func RequestedAtLTE(v time.Time) predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldLTE(FieldRequestedAt, v))
+}
+
+// LangIsNil applies the IsNil predicate on the "lang" field.
+func LangIsNil() predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldIsNull(FieldLang))
+}
+
+// LangNotNil applies the NotNil predicate on the "lang" field.
+func LangNotNil() predicate.IDSessions {
+	return predicate.IDSessions(sql.FieldNotNull(FieldLang))
+}
+
+// HasClientID applies the HasEdge predicate on the "client_id" edge.
+func HasClientID() predicate.IDSessions {
 	return predicate.IDSessions(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, RequestIDTable, RequestIDColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ClientIDTable, ClientIDColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasRequestIDWith applies the HasEdge predicate on the "request_id" edge with a given conditions (other predicates).
-func HasRequestIDWith(preds ...predicate.Request) predicate.IDSessions {
+// HasClientIDWith applies the HasEdge predicate on the "client_id" edge with a given conditions (other predicates).
+func HasClientIDWith(preds ...predicate.Clients) predicate.IDSessions {
 	return predicate.IDSessions(func(s *sql.Selector) {
-		step := newRequestIDStep()
+		step := newClientIDStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSessionID applies the HasEdge predicate on the "session_id" edge.
+func HasSessionID() predicate.IDSessions {
+	return predicate.IDSessions(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SessionIDTable, SessionIDColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSessionIDWith applies the HasEdge predicate on the "session_id" edge with a given conditions (other predicates).
+func HasSessionIDWith(preds ...predicate.Session) predicate.IDSessions {
+	return predicate.IDSessions(func(s *sql.Selector) {
+		step := newSessionIDStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

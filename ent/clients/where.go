@@ -144,21 +144,113 @@ func PublicNotNil() predicate.Clients {
 	return predicate.Clients(sql.FieldNotNull(FieldPublic))
 }
 
-// HasRequests applies the HasEdge predicate on the "requests" edge.
-func HasRequests() predicate.Clients {
+// HasAccessToken applies the HasEdge predicate on the "access_token" edge.
+func HasAccessToken() predicate.Clients {
 	return predicate.Clients(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, RequestsTable, RequestsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, AccessTokenTable, AccessTokenColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasRequestsWith applies the HasEdge predicate on the "requests" edge with a given conditions (other predicates).
-func HasRequestsWith(preds ...predicate.Request) predicate.Clients {
+// HasAccessTokenWith applies the HasEdge predicate on the "access_token" edge with a given conditions (other predicates).
+func HasAccessTokenWith(preds ...predicate.AccessTokens) predicate.Clients {
 	return predicate.Clients(func(s *sql.Selector) {
-		step := newRequestsStep()
+		step := newAccessTokenStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAuthorizeCode applies the HasEdge predicate on the "authorize_code" edge.
+func HasAuthorizeCode() predicate.Clients {
+	return predicate.Clients(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AuthorizeCodeTable, AuthorizeCodeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAuthorizeCodeWith applies the HasEdge predicate on the "authorize_code" edge with a given conditions (other predicates).
+func HasAuthorizeCodeWith(preds ...predicate.AuthorizeCodes) predicate.Clients {
+	return predicate.Clients(func(s *sql.Selector) {
+		step := newAuthorizeCodeStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRefreshToken applies the HasEdge predicate on the "refresh_token" edge.
+func HasRefreshToken() predicate.Clients {
+	return predicate.Clients(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RefreshTokenTable, RefreshTokenColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRefreshTokenWith applies the HasEdge predicate on the "refresh_token" edge with a given conditions (other predicates).
+func HasRefreshTokenWith(preds ...predicate.RefreshTokens) predicate.Clients {
+	return predicate.Clients(func(s *sql.Selector) {
+		step := newRefreshTokenStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasIDSession applies the HasEdge predicate on the "id_session" edge.
+func HasIDSession() predicate.Clients {
+	return predicate.Clients(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, IDSessionTable, IDSessionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasIDSessionWith applies the HasEdge predicate on the "id_session" edge with a given conditions (other predicates).
+func HasIDSessionWith(preds ...predicate.IDSessions) predicate.Clients {
+	return predicate.Clients(func(s *sql.Selector) {
+		step := newIDSessionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPkce applies the HasEdge predicate on the "pkce" edge.
+func HasPkce() predicate.Clients {
+	return predicate.Clients(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PkceTable, PkceColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPkceWith applies the HasEdge predicate on the "pkce" edge with a given conditions (other predicates).
+func HasPkceWith(preds ...predicate.PKCES) predicate.Clients {
+	return predicate.Clients(func(s *sql.Selector) {
+		step := newPkceStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

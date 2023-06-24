@@ -13,16 +13,18 @@ type RefreshTokens struct {
 
 // Fields of the RefreshTokens.
 func (RefreshTokens) Fields() []ent.Field {
-	return []ent.Field{
-		field.String("id").Unique(),
-		field.Bool("active"),
-	}
+	f := request_session_fields()
+	f = append(f, field.Bool("active"))
+	return f
 }
 
 // Edges of the RefreshTokens.
 func (RefreshTokens) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("request_id", Request.Type).
+		edge.From("client_id", Clients.Type).
+			Unique().
+			Ref("refresh_token"),
+		edge.From("session_id", Session.Type).
 			Unique().
 			Ref("refresh_token"),
 	}

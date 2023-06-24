@@ -3,9 +3,10 @@
 package ent
 
 import (
+	"authorization-service/ent/clients"
 	"authorization-service/ent/idsessions"
 	"authorization-service/ent/predicate"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
 	"context"
 	"fmt"
 	"math"
@@ -22,7 +23,8 @@ type IDSessionsQuery struct {
 	order         []idsessions.OrderOption
 	inters        []Interceptor
 	predicates    []predicate.IDSessions
-	withRequestID *RequestQuery
+	withClientID  *ClientsQuery
+	withSessionID *SessionQuery
 	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -60,9 +62,9 @@ func (isq *IDSessionsQuery) Order(o ...idsessions.OrderOption) *IDSessionsQuery 
 	return isq
 }
 
-// QueryRequestID chains the current query on the "request_id" edge.
-func (isq *IDSessionsQuery) QueryRequestID() *RequestQuery {
-	query := (&RequestClient{config: isq.config}).Query()
+// QueryClientID chains the current query on the "client_id" edge.
+func (isq *IDSessionsQuery) QueryClientID() *ClientsQuery {
+	query := (&ClientsClient{config: isq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := isq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -73,8 +75,30 @@ func (isq *IDSessionsQuery) QueryRequestID() *RequestQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(idsessions.Table, idsessions.FieldID, selector),
-			sqlgraph.To(request.Table, request.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, idsessions.RequestIDTable, idsessions.RequestIDColumn),
+			sqlgraph.To(clients.Table, clients.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, idsessions.ClientIDTable, idsessions.ClientIDColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(isq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySessionID chains the current query on the "session_id" edge.
+func (isq *IDSessionsQuery) QuerySessionID() *SessionQuery {
+	query := (&SessionClient{config: isq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := isq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := isq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(idsessions.Table, idsessions.FieldID, selector),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, idsessions.SessionIDTable, idsessions.SessionIDColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(isq.driver.Dialect(), step)
 		return fromU, nil
@@ -274,26 +298,50 @@ func (isq *IDSessionsQuery) Clone() *IDSessionsQuery {
 		order:         append([]idsessions.OrderOption{}, isq.order...),
 		inters:        append([]Interceptor{}, isq.inters...),
 		predicates:    append([]predicate.IDSessions{}, isq.predicates...),
-		withRequestID: isq.withRequestID.Clone(),
+		withClientID:  isq.withClientID.Clone(),
+		withSessionID: isq.withSessionID.Clone(),
 		// clone intermediate query.
 		sql:  isq.sql.Clone(),
 		path: isq.path,
 	}
 }
 
-// WithRequestID tells the query-builder to eager-load the nodes that are connected to
-// the "request_id" edge. The optional arguments are used to configure the query builder of the edge.
-func (isq *IDSessionsQuery) WithRequestID(opts ...func(*RequestQuery)) *IDSessionsQuery {
-	query := (&RequestClient{config: isq.config}).Query()
+// WithClientID tells the query-builder to eager-load the nodes that are connected to
+// the "client_id" edge. The optional arguments are used to configure the query builder of the edge.
+func (isq *IDSessionsQuery) WithClientID(opts ...func(*ClientsQuery)) *IDSessionsQuery {
+	query := (&ClientsClient{config: isq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	isq.withRequestID = query
+	isq.withClientID = query
+	return isq
+}
+
+// WithSessionID tells the query-builder to eager-load the nodes that are connected to
+// the "session_id" edge. The optional arguments are used to configure the query builder of the edge.
+func (isq *IDSessionsQuery) WithSessionID(opts ...func(*SessionQuery)) *IDSessionsQuery {
+	query := (&SessionClient{config: isq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	isq.withSessionID = query
 	return isq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		RequestID string `json:"request_id,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.IDSessions.Query().
+//		GroupBy(idsessions.FieldRequestID).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
 func (isq *IDSessionsQuery) GroupBy(field string, fields ...string) *IDSessionsGroupBy {
 	isq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &IDSessionsGroupBy{build: isq}
@@ -305,6 +353,16 @@ func (isq *IDSessionsQuery) GroupBy(field string, fields ...string) *IDSessionsG
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
+//
+// Example:
+//
+//	var v []struct {
+//		RequestID string `json:"request_id,omitempty"`
+//	}
+//
+//	client.IDSessions.Query().
+//		Select(idsessions.FieldRequestID).
+//		Scan(ctx, &v)
 func (isq *IDSessionsQuery) Select(fields ...string) *IDSessionsSelect {
 	isq.ctx.Fields = append(isq.ctx.Fields, fields...)
 	sbuild := &IDSessionsSelect{IDSessionsQuery: isq}
@@ -349,11 +407,12 @@ func (isq *IDSessionsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		nodes       = []*IDSessions{}
 		withFKs     = isq.withFKs
 		_spec       = isq.querySpec()
-		loadedTypes = [1]bool{
-			isq.withRequestID != nil,
+		loadedTypes = [2]bool{
+			isq.withClientID != nil,
+			isq.withSessionID != nil,
 		}
 	)
-	if isq.withRequestID != nil {
+	if isq.withClientID != nil || isq.withSessionID != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -377,23 +436,29 @@ func (isq *IDSessionsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := isq.withRequestID; query != nil {
-		if err := isq.loadRequestID(ctx, query, nodes, nil,
-			func(n *IDSessions, e *Request) { n.Edges.RequestID = e }); err != nil {
+	if query := isq.withClientID; query != nil {
+		if err := isq.loadClientID(ctx, query, nodes, nil,
+			func(n *IDSessions, e *Clients) { n.Edges.ClientID = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := isq.withSessionID; query != nil {
+		if err := isq.loadSessionID(ctx, query, nodes, nil,
+			func(n *IDSessions, e *Session) { n.Edges.SessionID = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (isq *IDSessionsQuery) loadRequestID(ctx context.Context, query *RequestQuery, nodes []*IDSessions, init func(*IDSessions), assign func(*IDSessions, *Request)) error {
+func (isq *IDSessionsQuery) loadClientID(ctx context.Context, query *ClientsQuery, nodes []*IDSessions, init func(*IDSessions), assign func(*IDSessions, *Clients)) error {
 	ids := make([]string, 0, len(nodes))
 	nodeids := make(map[string][]*IDSessions)
 	for i := range nodes {
-		if nodes[i].request_id_session == nil {
+		if nodes[i].clients_id_session == nil {
 			continue
 		}
-		fk := *nodes[i].request_id_session
+		fk := *nodes[i].clients_id_session
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -402,7 +467,7 @@ func (isq *IDSessionsQuery) loadRequestID(ctx context.Context, query *RequestQue
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(request.IDIn(ids...))
+	query.Where(clients.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -410,7 +475,39 @@ func (isq *IDSessionsQuery) loadRequestID(ctx context.Context, query *RequestQue
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "request_id_session" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "clients_id_session" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (isq *IDSessionsQuery) loadSessionID(ctx context.Context, query *SessionQuery, nodes []*IDSessions, init func(*IDSessions), assign func(*IDSessions, *Session)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*IDSessions)
+	for i := range nodes {
+		if nodes[i].session_id_session == nil {
+			continue
+		}
+		fk := *nodes[i].session_id_session
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(session.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "session_id_session" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

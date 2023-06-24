@@ -129,6 +129,16 @@ func UsernameHasSuffix(v string) predicate.Session {
 	return predicate.Session(sql.FieldHasSuffix(FieldUsername, v))
 }
 
+// UsernameIsNil applies the IsNil predicate on the "username" field.
+func UsernameIsNil() predicate.Session {
+	return predicate.Session(sql.FieldIsNull(FieldUsername))
+}
+
+// UsernameNotNil applies the NotNil predicate on the "username" field.
+func UsernameNotNil() predicate.Session {
+	return predicate.Session(sql.FieldNotNull(FieldUsername))
+}
+
 // UsernameEqualFold applies the EqualFold predicate on the "username" field.
 func UsernameEqualFold(v string) predicate.Session {
 	return predicate.Session(sql.FieldEqualFold(FieldUsername, v))
@@ -194,6 +204,16 @@ func SubjectHasSuffix(v string) predicate.Session {
 	return predicate.Session(sql.FieldHasSuffix(FieldSubject, v))
 }
 
+// SubjectIsNil applies the IsNil predicate on the "subject" field.
+func SubjectIsNil() predicate.Session {
+	return predicate.Session(sql.FieldIsNull(FieldSubject))
+}
+
+// SubjectNotNil applies the NotNil predicate on the "subject" field.
+func SubjectNotNil() predicate.Session {
+	return predicate.Session(sql.FieldNotNull(FieldSubject))
+}
+
 // SubjectEqualFold applies the EqualFold predicate on the "subject" field.
 func SubjectEqualFold(v string) predicate.Session {
 	return predicate.Session(sql.FieldEqualFold(FieldSubject, v))
@@ -214,21 +234,123 @@ func ExtraNotNil() predicate.Session {
 	return predicate.Session(sql.FieldNotNull(FieldExtra))
 }
 
-// HasRequests applies the HasEdge predicate on the "requests" edge.
-func HasRequests() predicate.Session {
+// SessionIsNil applies the IsNil predicate on the "session" field.
+func SessionIsNil() predicate.Session {
+	return predicate.Session(sql.FieldIsNull(FieldSession))
+}
+
+// SessionNotNil applies the NotNil predicate on the "session" field.
+func SessionNotNil() predicate.Session {
+	return predicate.Session(sql.FieldNotNull(FieldSession))
+}
+
+// HasAccessToken applies the HasEdge predicate on the "access_token" edge.
+func HasAccessToken() predicate.Session {
 	return predicate.Session(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, RequestsTable, RequestsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, AccessTokenTable, AccessTokenColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasRequestsWith applies the HasEdge predicate on the "requests" edge with a given conditions (other predicates).
-func HasRequestsWith(preds ...predicate.Request) predicate.Session {
+// HasAccessTokenWith applies the HasEdge predicate on the "access_token" edge with a given conditions (other predicates).
+func HasAccessTokenWith(preds ...predicate.AccessTokens) predicate.Session {
 	return predicate.Session(func(s *sql.Selector) {
-		step := newRequestsStep()
+		step := newAccessTokenStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAuthorizeCode applies the HasEdge predicate on the "authorize_code" edge.
+func HasAuthorizeCode() predicate.Session {
+	return predicate.Session(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AuthorizeCodeTable, AuthorizeCodeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAuthorizeCodeWith applies the HasEdge predicate on the "authorize_code" edge with a given conditions (other predicates).
+func HasAuthorizeCodeWith(preds ...predicate.AuthorizeCodes) predicate.Session {
+	return predicate.Session(func(s *sql.Selector) {
+		step := newAuthorizeCodeStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRefreshToken applies the HasEdge predicate on the "refresh_token" edge.
+func HasRefreshToken() predicate.Session {
+	return predicate.Session(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RefreshTokenTable, RefreshTokenColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRefreshTokenWith applies the HasEdge predicate on the "refresh_token" edge with a given conditions (other predicates).
+func HasRefreshTokenWith(preds ...predicate.RefreshTokens) predicate.Session {
+	return predicate.Session(func(s *sql.Selector) {
+		step := newRefreshTokenStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasIDSession applies the HasEdge predicate on the "id_session" edge.
+func HasIDSession() predicate.Session {
+	return predicate.Session(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, IDSessionTable, IDSessionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasIDSessionWith applies the HasEdge predicate on the "id_session" edge with a given conditions (other predicates).
+func HasIDSessionWith(preds ...predicate.IDSessions) predicate.Session {
+	return predicate.Session(func(s *sql.Selector) {
+		step := newIDSessionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPkce applies the HasEdge predicate on the "pkce" edge.
+func HasPkce() predicate.Session {
+	return predicate.Session(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PkceTable, PkceColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPkceWith applies the HasEdge predicate on the "pkce" edge with a given conditions (other predicates).
+func HasPkceWith(preds ...predicate.PKCES) predicate.Session {
+	return predicate.Session(func(s *sql.Selector) {
+		step := newPkceStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

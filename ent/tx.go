@@ -30,8 +30,6 @@ type Tx struct {
 	PublicKeyScopes *PublicKeyScopesClient
 	// RefreshTokens is the client for interacting with the RefreshTokens builders.
 	RefreshTokens *RefreshTokensClient
-	// Request is the client for interacting with the Request builders.
-	Request *RequestClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// SubjectPublicKeys is the client for interacting with the SubjectPublicKeys builders.
@@ -178,7 +176,6 @@ func (tx *Tx) init() {
 	tx.PKCES = NewPKCESClient(tx.config)
 	tx.PublicKeyScopes = NewPublicKeyScopesClient(tx.config)
 	tx.RefreshTokens = NewRefreshTokensClient(tx.config)
-	tx.Request = NewRequestClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.SubjectPublicKeys = NewSubjectPublicKeysClient(tx.config)
 	tx.User = NewUserClient(tx.config)

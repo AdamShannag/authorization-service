@@ -3,29 +3,62 @@ package store
 import (
 	"authorization-service/ent"
 	"context"
-	"fmt"
 	"log"
+	"time"
 
 	"github.com/ory/fosite"
+	"golang.org/x/text/language"
 )
 
 func createPKCE(ctx context.Context, client *ent.Client, code string, req fosite.Requester) error {
+	tokenTypes := []fosite.TokenType{fosite.AuthorizeCode, fosite.AccessToken, fosite.RefreshToken, fosite.IDToken, fosite.PushedAuthorizeRequestContext}
 
-	r, err := client.Request.Get(ctx, req.GetID())
+	m := map[string]time.Time{}
 
-	if err != nil {
-		return err
+	for _, s := range tokenTypes {
+		if req.GetSession().GetExpiresAt(s).After(time.Now()) {
+			m[string(s)] = req.GetSession().GetExpiresAt(s)
+		}
 	}
 
-	u, err := client.PKCES.
+	s, err := client.Session.Get(ctx, req.GetID())
+	if err == nil {
+		s, err = client.Session.UpdateOneID(req.GetID()).Save(ctx)
+
+		if err != nil {
+			return fosite.ErrServerError
+		}
+	} else {
+		s, err = client.Session.Create().
+			SetID(req.GetID()).
+			SetExpiresAt(m).
+			SetUsername(req.GetSession().GetUsername()).
+			SetSubject(req.GetSession().GetSubject()).
+			SetSession(req.GetSession()).
+			Save(ctx)
+
+		if err != nil {
+			return fosite.ErrServerError
+		}
+	}
+
+	_, err = client.PKCES.
 		Create().
 		SetID(code).
-		SetRequestID(r).
+		SetRequestID(req.GetID()).
+		SetRequestedAt(req.GetRequestedAt()).
+		SetClientIDID(req.GetClient().GetID()).
+		SetSessionID(s).
+		SetScopes(req.GetRequestedScopes()).
+		SetGrantedScopes(req.GetGrantedScopes()).
+		SetForm(req.GetRequestForm()).
+		SetRequestedAudience(req.GetRequestedAudience()).
+		SetGrantedAudience(req.GetGrantedAudience()).
+		SetLang(language.English).
 		Save(ctx)
 	if err != nil {
-		return fmt.Errorf("failed creating n pkce: %w", err)
+		return fosite.ErrServerError
 	}
-	log.Println("pkce was created: ", u)
 	return nil
 }
 
@@ -37,23 +70,42 @@ func findPKCEByCode(ctx context.Context, client *ent.Client, code string) (fosit
 		return nil, fosite.ErrNotFound
 	}
 
-	r, err := pkce.QueryRequestID().WithClientID().WithSessionID().Only(ctx)
+	c, err := pkce.QueryClientID().Only(ctx)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to find a request object: %w", err)
+		return nil, fosite.ErrNotFound
+	}
+
+	sessionEnt, err := client.Session.Get(ctx, pkce.RequestID)
+
+	if err != nil {
+		return nil, fosite.ErrNotFound
+	}
+
+	session := &fosite.DefaultSession{
+		ExpiresAt: getSessionExpiryAtFositeMap(sessionEnt.ExpiresAt),
+		Username:  sessionEnt.Username,
+		Subject:   sessionEnt.Subject,
+		Extra:     sessionEnt.Extra,
+	}
+
+	fSe, ok := sessionEnt.Session.(*fosite.Session)
+
+	if ok {
+		log.Println(fSe)
 	}
 
 	return &fosite.Request{
-		ID:                r.ID,
-		RequestedAt:       r.RequestedAt,
-		Client:            toFositeClient(r.Edges.ClientID),
-		Session:           toFositeSession(r.Edges.SessionID),
-		RequestedScope:    r.Scopes,
-		GrantedScope:      r.GrantedScopes,
-		Form:              r.Form,
-		RequestedAudience: r.RequestedAudience,
-		GrantedAudience:   r.GrantedAudience,
-		Lang:              r.Lang,
+		ID:                pkce.ID,
+		RequestedAt:       pkce.RequestedAt,
+		Client:            toFositeClient(c),
+		Session:           session,
+		RequestedScope:    pkce.Scopes,
+		GrantedScope:      pkce.GrantedScopes,
+		Form:              pkce.Form,
+		RequestedAudience: pkce.RequestedAudience,
+		GrantedAudience:   pkce.GrantedAudience,
+		Lang:              pkce.Lang,
 	}, nil
 }
 

@@ -3,9 +3,13 @@
 package ent
 
 import (
+	"authorization-service/ent/accesstokens"
+	"authorization-service/ent/authorizecodes"
 	"authorization-service/ent/clients"
+	"authorization-service/ent/idsessions"
+	"authorization-service/ent/pkces"
 	"authorization-service/ent/predicate"
-	"authorization-service/ent/request"
+	"authorization-service/ent/refreshtokens"
 	"context"
 	"database/sql/driver"
 	"fmt"
@@ -19,11 +23,15 @@ import (
 // ClientsQuery is the builder for querying Clients entities.
 type ClientsQuery struct {
 	config
-	ctx          *QueryContext
-	order        []clients.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.Clients
-	withRequests *RequestQuery
+	ctx               *QueryContext
+	order             []clients.OrderOption
+	inters            []Interceptor
+	predicates        []predicate.Clients
+	withAccessToken   *AccessTokensQuery
+	withAuthorizeCode *AuthorizeCodesQuery
+	withRefreshToken  *RefreshTokensQuery
+	withIDSession     *IDSessionsQuery
+	withPkce          *PKCESQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,9 +68,9 @@ func (cq *ClientsQuery) Order(o ...clients.OrderOption) *ClientsQuery {
 	return cq
 }
 
-// QueryRequests chains the current query on the "requests" edge.
-func (cq *ClientsQuery) QueryRequests() *RequestQuery {
-	query := (&RequestClient{config: cq.config}).Query()
+// QueryAccessToken chains the current query on the "access_token" edge.
+func (cq *ClientsQuery) QueryAccessToken() *AccessTokensQuery {
+	query := (&AccessTokensClient{config: cq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := cq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -73,8 +81,96 @@ func (cq *ClientsQuery) QueryRequests() *RequestQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(clients.Table, clients.FieldID, selector),
-			sqlgraph.To(request.Table, request.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, clients.RequestsTable, clients.RequestsColumn),
+			sqlgraph.To(accesstokens.Table, accesstokens.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clients.AccessTokenTable, clients.AccessTokenColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAuthorizeCode chains the current query on the "authorize_code" edge.
+func (cq *ClientsQuery) QueryAuthorizeCode() *AuthorizeCodesQuery {
+	query := (&AuthorizeCodesClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clients.Table, clients.FieldID, selector),
+			sqlgraph.To(authorizecodes.Table, authorizecodes.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clients.AuthorizeCodeTable, clients.AuthorizeCodeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRefreshToken chains the current query on the "refresh_token" edge.
+func (cq *ClientsQuery) QueryRefreshToken() *RefreshTokensQuery {
+	query := (&RefreshTokensClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clients.Table, clients.FieldID, selector),
+			sqlgraph.To(refreshtokens.Table, refreshtokens.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clients.RefreshTokenTable, clients.RefreshTokenColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryIDSession chains the current query on the "id_session" edge.
+func (cq *ClientsQuery) QueryIDSession() *IDSessionsQuery {
+	query := (&IDSessionsClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clients.Table, clients.FieldID, selector),
+			sqlgraph.To(idsessions.Table, idsessions.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clients.IDSessionTable, clients.IDSessionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPkce chains the current query on the "pkce" edge.
+func (cq *ClientsQuery) QueryPkce() *PKCESQuery {
+	query := (&PKCESClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clients.Table, clients.FieldID, selector),
+			sqlgraph.To(pkces.Table, pkces.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clients.PkceTable, clients.PkceColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -269,26 +365,74 @@ func (cq *ClientsQuery) Clone() *ClientsQuery {
 		return nil
 	}
 	return &ClientsQuery{
-		config:       cq.config,
-		ctx:          cq.ctx.Clone(),
-		order:        append([]clients.OrderOption{}, cq.order...),
-		inters:       append([]Interceptor{}, cq.inters...),
-		predicates:   append([]predicate.Clients{}, cq.predicates...),
-		withRequests: cq.withRequests.Clone(),
+		config:            cq.config,
+		ctx:               cq.ctx.Clone(),
+		order:             append([]clients.OrderOption{}, cq.order...),
+		inters:            append([]Interceptor{}, cq.inters...),
+		predicates:        append([]predicate.Clients{}, cq.predicates...),
+		withAccessToken:   cq.withAccessToken.Clone(),
+		withAuthorizeCode: cq.withAuthorizeCode.Clone(),
+		withRefreshToken:  cq.withRefreshToken.Clone(),
+		withIDSession:     cq.withIDSession.Clone(),
+		withPkce:          cq.withPkce.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
 	}
 }
 
-// WithRequests tells the query-builder to eager-load the nodes that are connected to
-// the "requests" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *ClientsQuery) WithRequests(opts ...func(*RequestQuery)) *ClientsQuery {
-	query := (&RequestClient{config: cq.config}).Query()
+// WithAccessToken tells the query-builder to eager-load the nodes that are connected to
+// the "access_token" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ClientsQuery) WithAccessToken(opts ...func(*AccessTokensQuery)) *ClientsQuery {
+	query := (&AccessTokensClient{config: cq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	cq.withRequests = query
+	cq.withAccessToken = query
+	return cq
+}
+
+// WithAuthorizeCode tells the query-builder to eager-load the nodes that are connected to
+// the "authorize_code" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ClientsQuery) WithAuthorizeCode(opts ...func(*AuthorizeCodesQuery)) *ClientsQuery {
+	query := (&AuthorizeCodesClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withAuthorizeCode = query
+	return cq
+}
+
+// WithRefreshToken tells the query-builder to eager-load the nodes that are connected to
+// the "refresh_token" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ClientsQuery) WithRefreshToken(opts ...func(*RefreshTokensQuery)) *ClientsQuery {
+	query := (&RefreshTokensClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withRefreshToken = query
+	return cq
+}
+
+// WithIDSession tells the query-builder to eager-load the nodes that are connected to
+// the "id_session" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ClientsQuery) WithIDSession(opts ...func(*IDSessionsQuery)) *ClientsQuery {
+	query := (&IDSessionsClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withIDSession = query
+	return cq
+}
+
+// WithPkce tells the query-builder to eager-load the nodes that are connected to
+// the "pkce" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ClientsQuery) WithPkce(opts ...func(*PKCESQuery)) *ClientsQuery {
+	query := (&PKCESClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withPkce = query
 	return cq
 }
 
@@ -370,8 +514,12 @@ func (cq *ClientsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Clie
 	var (
 		nodes       = []*Clients{}
 		_spec       = cq.querySpec()
-		loadedTypes = [1]bool{
-			cq.withRequests != nil,
+		loadedTypes = [5]bool{
+			cq.withAccessToken != nil,
+			cq.withAuthorizeCode != nil,
+			cq.withRefreshToken != nil,
+			cq.withIDSession != nil,
+			cq.withPkce != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -392,17 +540,45 @@ func (cq *ClientsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Clie
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := cq.withRequests; query != nil {
-		if err := cq.loadRequests(ctx, query, nodes,
-			func(n *Clients) { n.Edges.Requests = []*Request{} },
-			func(n *Clients, e *Request) { n.Edges.Requests = append(n.Edges.Requests, e) }); err != nil {
+	if query := cq.withAccessToken; query != nil {
+		if err := cq.loadAccessToken(ctx, query, nodes,
+			func(n *Clients) { n.Edges.AccessToken = []*AccessTokens{} },
+			func(n *Clients, e *AccessTokens) { n.Edges.AccessToken = append(n.Edges.AccessToken, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := cq.withAuthorizeCode; query != nil {
+		if err := cq.loadAuthorizeCode(ctx, query, nodes,
+			func(n *Clients) { n.Edges.AuthorizeCode = []*AuthorizeCodes{} },
+			func(n *Clients, e *AuthorizeCodes) { n.Edges.AuthorizeCode = append(n.Edges.AuthorizeCode, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := cq.withRefreshToken; query != nil {
+		if err := cq.loadRefreshToken(ctx, query, nodes,
+			func(n *Clients) { n.Edges.RefreshToken = []*RefreshTokens{} },
+			func(n *Clients, e *RefreshTokens) { n.Edges.RefreshToken = append(n.Edges.RefreshToken, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := cq.withIDSession; query != nil {
+		if err := cq.loadIDSession(ctx, query, nodes,
+			func(n *Clients) { n.Edges.IDSession = []*IDSessions{} },
+			func(n *Clients, e *IDSessions) { n.Edges.IDSession = append(n.Edges.IDSession, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := cq.withPkce; query != nil {
+		if err := cq.loadPkce(ctx, query, nodes,
+			func(n *Clients) { n.Edges.Pkce = []*PKCES{} },
+			func(n *Clients, e *PKCES) { n.Edges.Pkce = append(n.Edges.Pkce, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (cq *ClientsQuery) loadRequests(ctx context.Context, query *RequestQuery, nodes []*Clients, init func(*Clients), assign func(*Clients, *Request)) error {
+func (cq *ClientsQuery) loadAccessToken(ctx context.Context, query *AccessTokensQuery, nodes []*Clients, init func(*Clients), assign func(*Clients, *AccessTokens)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[string]*Clients)
 	for i := range nodes {
@@ -413,21 +589,145 @@ func (cq *ClientsQuery) loadRequests(ctx context.Context, query *RequestQuery, n
 		}
 	}
 	query.withFKs = true
-	query.Where(predicate.Request(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(clients.RequestsColumn), fks...))
+	query.Where(predicate.AccessTokens(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(clients.AccessTokenColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.clients_requests
+		fk := n.clients_access_token
 		if fk == nil {
-			return fmt.Errorf(`foreign-key "clients_requests" is nil for node %v`, n.ID)
+			return fmt.Errorf(`foreign-key "clients_access_token" is nil for node %v`, n.ID)
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "clients_requests" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "clients_access_token" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (cq *ClientsQuery) loadAuthorizeCode(ctx context.Context, query *AuthorizeCodesQuery, nodes []*Clients, init func(*Clients), assign func(*Clients, *AuthorizeCodes)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Clients)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.AuthorizeCodes(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(clients.AuthorizeCodeColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.clients_authorize_code
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "clients_authorize_code" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "clients_authorize_code" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (cq *ClientsQuery) loadRefreshToken(ctx context.Context, query *RefreshTokensQuery, nodes []*Clients, init func(*Clients), assign func(*Clients, *RefreshTokens)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Clients)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.RefreshTokens(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(clients.RefreshTokenColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.clients_refresh_token
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "clients_refresh_token" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "clients_refresh_token" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (cq *ClientsQuery) loadIDSession(ctx context.Context, query *IDSessionsQuery, nodes []*Clients, init func(*Clients), assign func(*Clients, *IDSessions)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Clients)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.IDSessions(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(clients.IDSessionColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.clients_id_session
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "clients_id_session" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "clients_id_session" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (cq *ClientsQuery) loadPkce(ctx context.Context, query *PKCESQuery, nodes []*Clients, init func(*Clients), assign func(*Clients, *PKCES)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Clients)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.PKCES(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(clients.PkceColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.clients_pkce
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "clients_pkce" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "clients_pkce" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

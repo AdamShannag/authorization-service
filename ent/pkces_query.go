@@ -3,9 +3,10 @@
 package ent
 
 import (
+	"authorization-service/ent/clients"
 	"authorization-service/ent/pkces"
 	"authorization-service/ent/predicate"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
 	"context"
 	"fmt"
 	"math"
@@ -22,7 +23,8 @@ type PKCESQuery struct {
 	order         []pkces.OrderOption
 	inters        []Interceptor
 	predicates    []predicate.PKCES
-	withRequestID *RequestQuery
+	withClientID  *ClientsQuery
+	withSessionID *SessionQuery
 	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -60,9 +62,9 @@ func (pq *PKCESQuery) Order(o ...pkces.OrderOption) *PKCESQuery {
 	return pq
 }
 
-// QueryRequestID chains the current query on the "request_id" edge.
-func (pq *PKCESQuery) QueryRequestID() *RequestQuery {
-	query := (&RequestClient{config: pq.config}).Query()
+// QueryClientID chains the current query on the "client_id" edge.
+func (pq *PKCESQuery) QueryClientID() *ClientsQuery {
+	query := (&ClientsClient{config: pq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -73,8 +75,30 @@ func (pq *PKCESQuery) QueryRequestID() *RequestQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(pkces.Table, pkces.FieldID, selector),
-			sqlgraph.To(request.Table, request.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, pkces.RequestIDTable, pkces.RequestIDColumn),
+			sqlgraph.To(clients.Table, clients.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, pkces.ClientIDTable, pkces.ClientIDColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySessionID chains the current query on the "session_id" edge.
+func (pq *PKCESQuery) QuerySessionID() *SessionQuery {
+	query := (&SessionClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pkces.Table, pkces.FieldID, selector),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, pkces.SessionIDTable, pkces.SessionIDColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -274,26 +298,50 @@ func (pq *PKCESQuery) Clone() *PKCESQuery {
 		order:         append([]pkces.OrderOption{}, pq.order...),
 		inters:        append([]Interceptor{}, pq.inters...),
 		predicates:    append([]predicate.PKCES{}, pq.predicates...),
-		withRequestID: pq.withRequestID.Clone(),
+		withClientID:  pq.withClientID.Clone(),
+		withSessionID: pq.withSessionID.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
 	}
 }
 
-// WithRequestID tells the query-builder to eager-load the nodes that are connected to
-// the "request_id" edge. The optional arguments are used to configure the query builder of the edge.
-func (pq *PKCESQuery) WithRequestID(opts ...func(*RequestQuery)) *PKCESQuery {
-	query := (&RequestClient{config: pq.config}).Query()
+// WithClientID tells the query-builder to eager-load the nodes that are connected to
+// the "client_id" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PKCESQuery) WithClientID(opts ...func(*ClientsQuery)) *PKCESQuery {
+	query := (&ClientsClient{config: pq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	pq.withRequestID = query
+	pq.withClientID = query
+	return pq
+}
+
+// WithSessionID tells the query-builder to eager-load the nodes that are connected to
+// the "session_id" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PKCESQuery) WithSessionID(opts ...func(*SessionQuery)) *PKCESQuery {
+	query := (&SessionClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withSessionID = query
 	return pq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		RequestID string `json:"request_id,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.PKCES.Query().
+//		GroupBy(pkces.FieldRequestID).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
 func (pq *PKCESQuery) GroupBy(field string, fields ...string) *PKCESGroupBy {
 	pq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &PKCESGroupBy{build: pq}
@@ -305,6 +353,16 @@ func (pq *PKCESQuery) GroupBy(field string, fields ...string) *PKCESGroupBy {
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
+//
+// Example:
+//
+//	var v []struct {
+//		RequestID string `json:"request_id,omitempty"`
+//	}
+//
+//	client.PKCES.Query().
+//		Select(pkces.FieldRequestID).
+//		Scan(ctx, &v)
 func (pq *PKCESQuery) Select(fields ...string) *PKCESSelect {
 	pq.ctx.Fields = append(pq.ctx.Fields, fields...)
 	sbuild := &PKCESSelect{PKCESQuery: pq}
@@ -349,11 +407,12 @@ func (pq *PKCESQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*PKCES,
 		nodes       = []*PKCES{}
 		withFKs     = pq.withFKs
 		_spec       = pq.querySpec()
-		loadedTypes = [1]bool{
-			pq.withRequestID != nil,
+		loadedTypes = [2]bool{
+			pq.withClientID != nil,
+			pq.withSessionID != nil,
 		}
 	)
-	if pq.withRequestID != nil {
+	if pq.withClientID != nil || pq.withSessionID != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -377,23 +436,29 @@ func (pq *PKCESQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*PKCES,
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := pq.withRequestID; query != nil {
-		if err := pq.loadRequestID(ctx, query, nodes, nil,
-			func(n *PKCES, e *Request) { n.Edges.RequestID = e }); err != nil {
+	if query := pq.withClientID; query != nil {
+		if err := pq.loadClientID(ctx, query, nodes, nil,
+			func(n *PKCES, e *Clients) { n.Edges.ClientID = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withSessionID; query != nil {
+		if err := pq.loadSessionID(ctx, query, nodes, nil,
+			func(n *PKCES, e *Session) { n.Edges.SessionID = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (pq *PKCESQuery) loadRequestID(ctx context.Context, query *RequestQuery, nodes []*PKCES, init func(*PKCES), assign func(*PKCES, *Request)) error {
+func (pq *PKCESQuery) loadClientID(ctx context.Context, query *ClientsQuery, nodes []*PKCES, init func(*PKCES), assign func(*PKCES, *Clients)) error {
 	ids := make([]string, 0, len(nodes))
 	nodeids := make(map[string][]*PKCES)
 	for i := range nodes {
-		if nodes[i].request_pkce == nil {
+		if nodes[i].clients_pkce == nil {
 			continue
 		}
-		fk := *nodes[i].request_pkce
+		fk := *nodes[i].clients_pkce
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -402,7 +467,7 @@ func (pq *PKCESQuery) loadRequestID(ctx context.Context, query *RequestQuery, no
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(request.IDIn(ids...))
+	query.Where(clients.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -410,7 +475,39 @@ func (pq *PKCESQuery) loadRequestID(ctx context.Context, query *RequestQuery, no
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "request_pkce" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "clients_pkce" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (pq *PKCESQuery) loadSessionID(ctx context.Context, query *SessionQuery, nodes []*PKCES, init func(*PKCES), assign func(*PKCES, *Session)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*PKCES)
+	for i := range nodes {
+		if nodes[i].session_pkce == nil {
+			continue
+		}
+		fk := *nodes[i].session_pkce
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(session.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "session_pkce" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

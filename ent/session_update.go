@@ -3,8 +3,12 @@
 package ent
 
 import (
+	"authorization-service/ent/accesstokens"
+	"authorization-service/ent/authorizecodes"
+	"authorization-service/ent/idsessions"
+	"authorization-service/ent/pkces"
 	"authorization-service/ent/predicate"
-	"authorization-service/ent/request"
+	"authorization-service/ent/refreshtokens"
 	"authorization-service/ent/session"
 	"context"
 	"errors"
@@ -41,9 +45,37 @@ func (su *SessionUpdate) SetUsername(s string) *SessionUpdate {
 	return su
 }
 
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (su *SessionUpdate) SetNillableUsername(s *string) *SessionUpdate {
+	if s != nil {
+		su.SetUsername(*s)
+	}
+	return su
+}
+
+// ClearUsername clears the value of the "username" field.
+func (su *SessionUpdate) ClearUsername() *SessionUpdate {
+	su.mutation.ClearUsername()
+	return su
+}
+
 // SetSubject sets the "subject" field.
 func (su *SessionUpdate) SetSubject(s string) *SessionUpdate {
 	su.mutation.SetSubject(s)
+	return su
+}
+
+// SetNillableSubject sets the "subject" field if the given value is not nil.
+func (su *SessionUpdate) SetNillableSubject(s *string) *SessionUpdate {
+	if s != nil {
+		su.SetSubject(*s)
+	}
+	return su
+}
+
+// ClearSubject clears the value of the "subject" field.
+func (su *SessionUpdate) ClearSubject() *SessionUpdate {
+	su.mutation.ClearSubject()
 	return su
 }
 
@@ -59,19 +91,91 @@ func (su *SessionUpdate) ClearExtra() *SessionUpdate {
 	return su
 }
 
-// AddRequestIDs adds the "requests" edge to the Request entity by IDs.
-func (su *SessionUpdate) AddRequestIDs(ids ...string) *SessionUpdate {
-	su.mutation.AddRequestIDs(ids...)
+// SetSession sets the "session" field.
+func (su *SessionUpdate) SetSession(a any) *SessionUpdate {
+	su.mutation.SetSession(a)
 	return su
 }
 
-// AddRequests adds the "requests" edges to the Request entity.
-func (su *SessionUpdate) AddRequests(r ...*Request) *SessionUpdate {
+// ClearSession clears the value of the "session" field.
+func (su *SessionUpdate) ClearSession() *SessionUpdate {
+	su.mutation.ClearSession()
+	return su
+}
+
+// AddAccessTokenIDs adds the "access_token" edge to the AccessTokens entity by IDs.
+func (su *SessionUpdate) AddAccessTokenIDs(ids ...string) *SessionUpdate {
+	su.mutation.AddAccessTokenIDs(ids...)
+	return su
+}
+
+// AddAccessToken adds the "access_token" edges to the AccessTokens entity.
+func (su *SessionUpdate) AddAccessToken(a ...*AccessTokens) *SessionUpdate {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return su.AddAccessTokenIDs(ids...)
+}
+
+// AddAuthorizeCodeIDs adds the "authorize_code" edge to the AuthorizeCodes entity by IDs.
+func (su *SessionUpdate) AddAuthorizeCodeIDs(ids ...string) *SessionUpdate {
+	su.mutation.AddAuthorizeCodeIDs(ids...)
+	return su
+}
+
+// AddAuthorizeCode adds the "authorize_code" edges to the AuthorizeCodes entity.
+func (su *SessionUpdate) AddAuthorizeCode(a ...*AuthorizeCodes) *SessionUpdate {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return su.AddAuthorizeCodeIDs(ids...)
+}
+
+// AddRefreshTokenIDs adds the "refresh_token" edge to the RefreshTokens entity by IDs.
+func (su *SessionUpdate) AddRefreshTokenIDs(ids ...string) *SessionUpdate {
+	su.mutation.AddRefreshTokenIDs(ids...)
+	return su
+}
+
+// AddRefreshToken adds the "refresh_token" edges to the RefreshTokens entity.
+func (su *SessionUpdate) AddRefreshToken(r ...*RefreshTokens) *SessionUpdate {
 	ids := make([]string, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return su.AddRequestIDs(ids...)
+	return su.AddRefreshTokenIDs(ids...)
+}
+
+// AddIDSessionIDs adds the "id_session" edge to the IDSessions entity by IDs.
+func (su *SessionUpdate) AddIDSessionIDs(ids ...string) *SessionUpdate {
+	su.mutation.AddIDSessionIDs(ids...)
+	return su
+}
+
+// AddIDSession adds the "id_session" edges to the IDSessions entity.
+func (su *SessionUpdate) AddIDSession(i ...*IDSessions) *SessionUpdate {
+	ids := make([]string, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return su.AddIDSessionIDs(ids...)
+}
+
+// AddPkceIDs adds the "pkce" edge to the PKCES entity by IDs.
+func (su *SessionUpdate) AddPkceIDs(ids ...string) *SessionUpdate {
+	su.mutation.AddPkceIDs(ids...)
+	return su
+}
+
+// AddPkce adds the "pkce" edges to the PKCES entity.
+func (su *SessionUpdate) AddPkce(p ...*PKCES) *SessionUpdate {
+	ids := make([]string, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return su.AddPkceIDs(ids...)
 }
 
 // Mutation returns the SessionMutation object of the builder.
@@ -79,25 +183,109 @@ func (su *SessionUpdate) Mutation() *SessionMutation {
 	return su.mutation
 }
 
-// ClearRequests clears all "requests" edges to the Request entity.
-func (su *SessionUpdate) ClearRequests() *SessionUpdate {
-	su.mutation.ClearRequests()
+// ClearAccessToken clears all "access_token" edges to the AccessTokens entity.
+func (su *SessionUpdate) ClearAccessToken() *SessionUpdate {
+	su.mutation.ClearAccessToken()
 	return su
 }
 
-// RemoveRequestIDs removes the "requests" edge to Request entities by IDs.
-func (su *SessionUpdate) RemoveRequestIDs(ids ...string) *SessionUpdate {
-	su.mutation.RemoveRequestIDs(ids...)
+// RemoveAccessTokenIDs removes the "access_token" edge to AccessTokens entities by IDs.
+func (su *SessionUpdate) RemoveAccessTokenIDs(ids ...string) *SessionUpdate {
+	su.mutation.RemoveAccessTokenIDs(ids...)
 	return su
 }
 
-// RemoveRequests removes "requests" edges to Request entities.
-func (su *SessionUpdate) RemoveRequests(r ...*Request) *SessionUpdate {
+// RemoveAccessToken removes "access_token" edges to AccessTokens entities.
+func (su *SessionUpdate) RemoveAccessToken(a ...*AccessTokens) *SessionUpdate {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return su.RemoveAccessTokenIDs(ids...)
+}
+
+// ClearAuthorizeCode clears all "authorize_code" edges to the AuthorizeCodes entity.
+func (su *SessionUpdate) ClearAuthorizeCode() *SessionUpdate {
+	su.mutation.ClearAuthorizeCode()
+	return su
+}
+
+// RemoveAuthorizeCodeIDs removes the "authorize_code" edge to AuthorizeCodes entities by IDs.
+func (su *SessionUpdate) RemoveAuthorizeCodeIDs(ids ...string) *SessionUpdate {
+	su.mutation.RemoveAuthorizeCodeIDs(ids...)
+	return su
+}
+
+// RemoveAuthorizeCode removes "authorize_code" edges to AuthorizeCodes entities.
+func (su *SessionUpdate) RemoveAuthorizeCode(a ...*AuthorizeCodes) *SessionUpdate {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return su.RemoveAuthorizeCodeIDs(ids...)
+}
+
+// ClearRefreshToken clears all "refresh_token" edges to the RefreshTokens entity.
+func (su *SessionUpdate) ClearRefreshToken() *SessionUpdate {
+	su.mutation.ClearRefreshToken()
+	return su
+}
+
+// RemoveRefreshTokenIDs removes the "refresh_token" edge to RefreshTokens entities by IDs.
+func (su *SessionUpdate) RemoveRefreshTokenIDs(ids ...string) *SessionUpdate {
+	su.mutation.RemoveRefreshTokenIDs(ids...)
+	return su
+}
+
+// RemoveRefreshToken removes "refresh_token" edges to RefreshTokens entities.
+func (su *SessionUpdate) RemoveRefreshToken(r ...*RefreshTokens) *SessionUpdate {
 	ids := make([]string, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return su.RemoveRequestIDs(ids...)
+	return su.RemoveRefreshTokenIDs(ids...)
+}
+
+// ClearIDSession clears all "id_session" edges to the IDSessions entity.
+func (su *SessionUpdate) ClearIDSession() *SessionUpdate {
+	su.mutation.ClearIDSession()
+	return su
+}
+
+// RemoveIDSessionIDs removes the "id_session" edge to IDSessions entities by IDs.
+func (su *SessionUpdate) RemoveIDSessionIDs(ids ...string) *SessionUpdate {
+	su.mutation.RemoveIDSessionIDs(ids...)
+	return su
+}
+
+// RemoveIDSession removes "id_session" edges to IDSessions entities.
+func (su *SessionUpdate) RemoveIDSession(i ...*IDSessions) *SessionUpdate {
+	ids := make([]string, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return su.RemoveIDSessionIDs(ids...)
+}
+
+// ClearPkce clears all "pkce" edges to the PKCES entity.
+func (su *SessionUpdate) ClearPkce() *SessionUpdate {
+	su.mutation.ClearPkce()
+	return su
+}
+
+// RemovePkceIDs removes the "pkce" edge to PKCES entities by IDs.
+func (su *SessionUpdate) RemovePkceIDs(ids ...string) *SessionUpdate {
+	su.mutation.RemovePkceIDs(ids...)
+	return su
+}
+
+// RemovePkce removes "pkce" edges to PKCES entities.
+func (su *SessionUpdate) RemovePkce(p ...*PKCES) *SessionUpdate {
+	ids := make([]string, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return su.RemovePkceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -142,8 +330,14 @@ func (su *SessionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := su.mutation.Username(); ok {
 		_spec.SetField(session.FieldUsername, field.TypeString, value)
 	}
+	if su.mutation.UsernameCleared() {
+		_spec.ClearField(session.FieldUsername, field.TypeString)
+	}
 	if value, ok := su.mutation.Subject(); ok {
 		_spec.SetField(session.FieldSubject, field.TypeString, value)
+	}
+	if su.mutation.SubjectCleared() {
+		_spec.ClearField(session.FieldSubject, field.TypeString)
 	}
 	if value, ok := su.mutation.Extra(); ok {
 		_spec.SetField(session.FieldExtra, field.TypeJSON, value)
@@ -151,28 +345,34 @@ func (su *SessionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if su.mutation.ExtraCleared() {
 		_spec.ClearField(session.FieldExtra, field.TypeJSON)
 	}
-	if su.mutation.RequestsCleared() {
+	if value, ok := su.mutation.Session(); ok {
+		_spec.SetField(session.FieldSession, field.TypeJSON, value)
+	}
+	if su.mutation.SessionCleared() {
+		_spec.ClearField(session.FieldSession, field.TypeJSON)
+	}
+	if su.mutation.AccessTokenCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   session.RequestsTable,
-			Columns: []string{session.RequestsColumn},
+			Table:   session.AccessTokenTable,
+			Columns: []string{session.AccessTokenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(accesstokens.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.mutation.RemovedRequestsIDs(); len(nodes) > 0 && !su.mutation.RequestsCleared() {
+	if nodes := su.mutation.RemovedAccessTokenIDs(); len(nodes) > 0 && !su.mutation.AccessTokenCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   session.RequestsTable,
-			Columns: []string{session.RequestsColumn},
+			Table:   session.AccessTokenTable,
+			Columns: []string{session.AccessTokenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(accesstokens.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -180,15 +380,195 @@ func (su *SessionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.mutation.RequestsIDs(); len(nodes) > 0 {
+	if nodes := su.mutation.AccessTokenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   session.RequestsTable,
-			Columns: []string{session.RequestsColumn},
+			Table:   session.AccessTokenTable,
+			Columns: []string{session.AccessTokenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(accesstokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if su.mutation.AuthorizeCodeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.AuthorizeCodeTable,
+			Columns: []string{session.AuthorizeCodeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authorizecodes.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedAuthorizeCodeIDs(); len(nodes) > 0 && !su.mutation.AuthorizeCodeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.AuthorizeCodeTable,
+			Columns: []string{session.AuthorizeCodeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authorizecodes.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.AuthorizeCodeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.AuthorizeCodeTable,
+			Columns: []string{session.AuthorizeCodeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authorizecodes.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if su.mutation.RefreshTokenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.RefreshTokenTable,
+			Columns: []string{session.RefreshTokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtokens.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedRefreshTokenIDs(); len(nodes) > 0 && !su.mutation.RefreshTokenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.RefreshTokenTable,
+			Columns: []string{session.RefreshTokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RefreshTokenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.RefreshTokenTable,
+			Columns: []string{session.RefreshTokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if su.mutation.IDSessionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.IDSessionTable,
+			Columns: []string{session.IDSessionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(idsessions.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedIDSessionIDs(); len(nodes) > 0 && !su.mutation.IDSessionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.IDSessionTable,
+			Columns: []string{session.IDSessionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(idsessions.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.IDSessionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.IDSessionTable,
+			Columns: []string{session.IDSessionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(idsessions.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if su.mutation.PkceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.PkceTable,
+			Columns: []string{session.PkceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pkces.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedPkceIDs(); len(nodes) > 0 && !su.mutation.PkceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.PkceTable,
+			Columns: []string{session.PkceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pkces.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.PkceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.PkceTable,
+			Columns: []string{session.PkceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pkces.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -228,9 +608,37 @@ func (suo *SessionUpdateOne) SetUsername(s string) *SessionUpdateOne {
 	return suo
 }
 
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (suo *SessionUpdateOne) SetNillableUsername(s *string) *SessionUpdateOne {
+	if s != nil {
+		suo.SetUsername(*s)
+	}
+	return suo
+}
+
+// ClearUsername clears the value of the "username" field.
+func (suo *SessionUpdateOne) ClearUsername() *SessionUpdateOne {
+	suo.mutation.ClearUsername()
+	return suo
+}
+
 // SetSubject sets the "subject" field.
 func (suo *SessionUpdateOne) SetSubject(s string) *SessionUpdateOne {
 	suo.mutation.SetSubject(s)
+	return suo
+}
+
+// SetNillableSubject sets the "subject" field if the given value is not nil.
+func (suo *SessionUpdateOne) SetNillableSubject(s *string) *SessionUpdateOne {
+	if s != nil {
+		suo.SetSubject(*s)
+	}
+	return suo
+}
+
+// ClearSubject clears the value of the "subject" field.
+func (suo *SessionUpdateOne) ClearSubject() *SessionUpdateOne {
+	suo.mutation.ClearSubject()
 	return suo
 }
 
@@ -246,19 +654,91 @@ func (suo *SessionUpdateOne) ClearExtra() *SessionUpdateOne {
 	return suo
 }
 
-// AddRequestIDs adds the "requests" edge to the Request entity by IDs.
-func (suo *SessionUpdateOne) AddRequestIDs(ids ...string) *SessionUpdateOne {
-	suo.mutation.AddRequestIDs(ids...)
+// SetSession sets the "session" field.
+func (suo *SessionUpdateOne) SetSession(a any) *SessionUpdateOne {
+	suo.mutation.SetSession(a)
 	return suo
 }
 
-// AddRequests adds the "requests" edges to the Request entity.
-func (suo *SessionUpdateOne) AddRequests(r ...*Request) *SessionUpdateOne {
+// ClearSession clears the value of the "session" field.
+func (suo *SessionUpdateOne) ClearSession() *SessionUpdateOne {
+	suo.mutation.ClearSession()
+	return suo
+}
+
+// AddAccessTokenIDs adds the "access_token" edge to the AccessTokens entity by IDs.
+func (suo *SessionUpdateOne) AddAccessTokenIDs(ids ...string) *SessionUpdateOne {
+	suo.mutation.AddAccessTokenIDs(ids...)
+	return suo
+}
+
+// AddAccessToken adds the "access_token" edges to the AccessTokens entity.
+func (suo *SessionUpdateOne) AddAccessToken(a ...*AccessTokens) *SessionUpdateOne {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return suo.AddAccessTokenIDs(ids...)
+}
+
+// AddAuthorizeCodeIDs adds the "authorize_code" edge to the AuthorizeCodes entity by IDs.
+func (suo *SessionUpdateOne) AddAuthorizeCodeIDs(ids ...string) *SessionUpdateOne {
+	suo.mutation.AddAuthorizeCodeIDs(ids...)
+	return suo
+}
+
+// AddAuthorizeCode adds the "authorize_code" edges to the AuthorizeCodes entity.
+func (suo *SessionUpdateOne) AddAuthorizeCode(a ...*AuthorizeCodes) *SessionUpdateOne {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return suo.AddAuthorizeCodeIDs(ids...)
+}
+
+// AddRefreshTokenIDs adds the "refresh_token" edge to the RefreshTokens entity by IDs.
+func (suo *SessionUpdateOne) AddRefreshTokenIDs(ids ...string) *SessionUpdateOne {
+	suo.mutation.AddRefreshTokenIDs(ids...)
+	return suo
+}
+
+// AddRefreshToken adds the "refresh_token" edges to the RefreshTokens entity.
+func (suo *SessionUpdateOne) AddRefreshToken(r ...*RefreshTokens) *SessionUpdateOne {
 	ids := make([]string, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return suo.AddRequestIDs(ids...)
+	return suo.AddRefreshTokenIDs(ids...)
+}
+
+// AddIDSessionIDs adds the "id_session" edge to the IDSessions entity by IDs.
+func (suo *SessionUpdateOne) AddIDSessionIDs(ids ...string) *SessionUpdateOne {
+	suo.mutation.AddIDSessionIDs(ids...)
+	return suo
+}
+
+// AddIDSession adds the "id_session" edges to the IDSessions entity.
+func (suo *SessionUpdateOne) AddIDSession(i ...*IDSessions) *SessionUpdateOne {
+	ids := make([]string, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return suo.AddIDSessionIDs(ids...)
+}
+
+// AddPkceIDs adds the "pkce" edge to the PKCES entity by IDs.
+func (suo *SessionUpdateOne) AddPkceIDs(ids ...string) *SessionUpdateOne {
+	suo.mutation.AddPkceIDs(ids...)
+	return suo
+}
+
+// AddPkce adds the "pkce" edges to the PKCES entity.
+func (suo *SessionUpdateOne) AddPkce(p ...*PKCES) *SessionUpdateOne {
+	ids := make([]string, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return suo.AddPkceIDs(ids...)
 }
 
 // Mutation returns the SessionMutation object of the builder.
@@ -266,25 +746,109 @@ func (suo *SessionUpdateOne) Mutation() *SessionMutation {
 	return suo.mutation
 }
 
-// ClearRequests clears all "requests" edges to the Request entity.
-func (suo *SessionUpdateOne) ClearRequests() *SessionUpdateOne {
-	suo.mutation.ClearRequests()
+// ClearAccessToken clears all "access_token" edges to the AccessTokens entity.
+func (suo *SessionUpdateOne) ClearAccessToken() *SessionUpdateOne {
+	suo.mutation.ClearAccessToken()
 	return suo
 }
 
-// RemoveRequestIDs removes the "requests" edge to Request entities by IDs.
-func (suo *SessionUpdateOne) RemoveRequestIDs(ids ...string) *SessionUpdateOne {
-	suo.mutation.RemoveRequestIDs(ids...)
+// RemoveAccessTokenIDs removes the "access_token" edge to AccessTokens entities by IDs.
+func (suo *SessionUpdateOne) RemoveAccessTokenIDs(ids ...string) *SessionUpdateOne {
+	suo.mutation.RemoveAccessTokenIDs(ids...)
 	return suo
 }
 
-// RemoveRequests removes "requests" edges to Request entities.
-func (suo *SessionUpdateOne) RemoveRequests(r ...*Request) *SessionUpdateOne {
+// RemoveAccessToken removes "access_token" edges to AccessTokens entities.
+func (suo *SessionUpdateOne) RemoveAccessToken(a ...*AccessTokens) *SessionUpdateOne {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return suo.RemoveAccessTokenIDs(ids...)
+}
+
+// ClearAuthorizeCode clears all "authorize_code" edges to the AuthorizeCodes entity.
+func (suo *SessionUpdateOne) ClearAuthorizeCode() *SessionUpdateOne {
+	suo.mutation.ClearAuthorizeCode()
+	return suo
+}
+
+// RemoveAuthorizeCodeIDs removes the "authorize_code" edge to AuthorizeCodes entities by IDs.
+func (suo *SessionUpdateOne) RemoveAuthorizeCodeIDs(ids ...string) *SessionUpdateOne {
+	suo.mutation.RemoveAuthorizeCodeIDs(ids...)
+	return suo
+}
+
+// RemoveAuthorizeCode removes "authorize_code" edges to AuthorizeCodes entities.
+func (suo *SessionUpdateOne) RemoveAuthorizeCode(a ...*AuthorizeCodes) *SessionUpdateOne {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return suo.RemoveAuthorizeCodeIDs(ids...)
+}
+
+// ClearRefreshToken clears all "refresh_token" edges to the RefreshTokens entity.
+func (suo *SessionUpdateOne) ClearRefreshToken() *SessionUpdateOne {
+	suo.mutation.ClearRefreshToken()
+	return suo
+}
+
+// RemoveRefreshTokenIDs removes the "refresh_token" edge to RefreshTokens entities by IDs.
+func (suo *SessionUpdateOne) RemoveRefreshTokenIDs(ids ...string) *SessionUpdateOne {
+	suo.mutation.RemoveRefreshTokenIDs(ids...)
+	return suo
+}
+
+// RemoveRefreshToken removes "refresh_token" edges to RefreshTokens entities.
+func (suo *SessionUpdateOne) RemoveRefreshToken(r ...*RefreshTokens) *SessionUpdateOne {
 	ids := make([]string, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return suo.RemoveRequestIDs(ids...)
+	return suo.RemoveRefreshTokenIDs(ids...)
+}
+
+// ClearIDSession clears all "id_session" edges to the IDSessions entity.
+func (suo *SessionUpdateOne) ClearIDSession() *SessionUpdateOne {
+	suo.mutation.ClearIDSession()
+	return suo
+}
+
+// RemoveIDSessionIDs removes the "id_session" edge to IDSessions entities by IDs.
+func (suo *SessionUpdateOne) RemoveIDSessionIDs(ids ...string) *SessionUpdateOne {
+	suo.mutation.RemoveIDSessionIDs(ids...)
+	return suo
+}
+
+// RemoveIDSession removes "id_session" edges to IDSessions entities.
+func (suo *SessionUpdateOne) RemoveIDSession(i ...*IDSessions) *SessionUpdateOne {
+	ids := make([]string, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return suo.RemoveIDSessionIDs(ids...)
+}
+
+// ClearPkce clears all "pkce" edges to the PKCES entity.
+func (suo *SessionUpdateOne) ClearPkce() *SessionUpdateOne {
+	suo.mutation.ClearPkce()
+	return suo
+}
+
+// RemovePkceIDs removes the "pkce" edge to PKCES entities by IDs.
+func (suo *SessionUpdateOne) RemovePkceIDs(ids ...string) *SessionUpdateOne {
+	suo.mutation.RemovePkceIDs(ids...)
+	return suo
+}
+
+// RemovePkce removes "pkce" edges to PKCES entities.
+func (suo *SessionUpdateOne) RemovePkce(p ...*PKCES) *SessionUpdateOne {
+	ids := make([]string, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return suo.RemovePkceIDs(ids...)
 }
 
 // Where appends a list predicates to the SessionUpdate builder.
@@ -359,8 +923,14 @@ func (suo *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err e
 	if value, ok := suo.mutation.Username(); ok {
 		_spec.SetField(session.FieldUsername, field.TypeString, value)
 	}
+	if suo.mutation.UsernameCleared() {
+		_spec.ClearField(session.FieldUsername, field.TypeString)
+	}
 	if value, ok := suo.mutation.Subject(); ok {
 		_spec.SetField(session.FieldSubject, field.TypeString, value)
+	}
+	if suo.mutation.SubjectCleared() {
+		_spec.ClearField(session.FieldSubject, field.TypeString)
 	}
 	if value, ok := suo.mutation.Extra(); ok {
 		_spec.SetField(session.FieldExtra, field.TypeJSON, value)
@@ -368,28 +938,34 @@ func (suo *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err e
 	if suo.mutation.ExtraCleared() {
 		_spec.ClearField(session.FieldExtra, field.TypeJSON)
 	}
-	if suo.mutation.RequestsCleared() {
+	if value, ok := suo.mutation.Session(); ok {
+		_spec.SetField(session.FieldSession, field.TypeJSON, value)
+	}
+	if suo.mutation.SessionCleared() {
+		_spec.ClearField(session.FieldSession, field.TypeJSON)
+	}
+	if suo.mutation.AccessTokenCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   session.RequestsTable,
-			Columns: []string{session.RequestsColumn},
+			Table:   session.AccessTokenTable,
+			Columns: []string{session.AccessTokenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(accesstokens.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.mutation.RemovedRequestsIDs(); len(nodes) > 0 && !suo.mutation.RequestsCleared() {
+	if nodes := suo.mutation.RemovedAccessTokenIDs(); len(nodes) > 0 && !suo.mutation.AccessTokenCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   session.RequestsTable,
-			Columns: []string{session.RequestsColumn},
+			Table:   session.AccessTokenTable,
+			Columns: []string{session.AccessTokenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(accesstokens.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -397,15 +973,195 @@ func (suo *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.mutation.RequestsIDs(); len(nodes) > 0 {
+	if nodes := suo.mutation.AccessTokenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   session.RequestsTable,
-			Columns: []string{session.RequestsColumn},
+			Table:   session.AccessTokenTable,
+			Columns: []string{session.AccessTokenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(accesstokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.AuthorizeCodeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.AuthorizeCodeTable,
+			Columns: []string{session.AuthorizeCodeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authorizecodes.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedAuthorizeCodeIDs(); len(nodes) > 0 && !suo.mutation.AuthorizeCodeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.AuthorizeCodeTable,
+			Columns: []string{session.AuthorizeCodeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authorizecodes.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.AuthorizeCodeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.AuthorizeCodeTable,
+			Columns: []string{session.AuthorizeCodeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authorizecodes.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.RefreshTokenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.RefreshTokenTable,
+			Columns: []string{session.RefreshTokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtokens.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedRefreshTokenIDs(); len(nodes) > 0 && !suo.mutation.RefreshTokenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.RefreshTokenTable,
+			Columns: []string{session.RefreshTokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RefreshTokenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.RefreshTokenTable,
+			Columns: []string{session.RefreshTokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.IDSessionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.IDSessionTable,
+			Columns: []string{session.IDSessionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(idsessions.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedIDSessionIDs(); len(nodes) > 0 && !suo.mutation.IDSessionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.IDSessionTable,
+			Columns: []string{session.IDSessionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(idsessions.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.IDSessionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.IDSessionTable,
+			Columns: []string{session.IDSessionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(idsessions.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.PkceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.PkceTable,
+			Columns: []string{session.PkceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pkces.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedPkceIDs(); len(nodes) > 0 && !suo.mutation.PkceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.PkceTable,
+			Columns: []string{session.PkceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pkces.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.PkceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.PkceTable,
+			Columns: []string{session.PkceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pkces.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

@@ -12,7 +12,6 @@ import (
 	"authorization-service/ent/pkces"
 	"authorization-service/ent/publickeyscopes"
 	"authorization-service/ent/refreshtokens"
-	"authorization-service/ent/request"
 	"authorization-service/ent/session"
 	"authorization-service/ent/subjectpublickeys"
 	"authorization-service/ent/user"
@@ -94,7 +93,6 @@ func checkColumn(table, column string) error {
 			pkces.Table:             pkces.ValidColumn,
 			publickeyscopes.Table:   publickeyscopes.ValidColumn,
 			refreshtokens.Table:     refreshtokens.ValidColumn,
-			request.Table:           request.ValidColumn,
 			session.Table:           session.ValidColumn,
 			subjectpublickeys.Table: subjectpublickeys.ValidColumn,
 			user.Table:              user.ValidColumn,

@@ -4,12 +4,17 @@ package ent
 
 import (
 	"authorization-service/ent/authorizecodes"
-	"authorization-service/ent/request"
+	"authorization-service/ent/clients"
+	"authorization-service/ent/session"
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"golang.org/x/text/language"
 )
 
 // AuthorizeCodes is the model entity for the AuthorizeCodes schema.
@@ -17,35 +22,67 @@ type AuthorizeCodes struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
+	// RequestID holds the value of the "request_id" field.
+	RequestID string `json:"request_id,omitempty"`
+	// RequestedAt holds the value of the "requestedAt" field.
+	RequestedAt time.Time `json:"requestedAt,omitempty"`
+	// Scopes holds the value of the "scopes" field.
+	Scopes []string `json:"scopes,omitempty"`
+	// GrantedScopes holds the value of the "granted_scopes" field.
+	GrantedScopes []string `json:"granted_scopes,omitempty"`
+	// RequestedAudience holds the value of the "requested_audience" field.
+	RequestedAudience []string `json:"requested_audience,omitempty"`
+	// GrantedAudience holds the value of the "granted_audience" field.
+	GrantedAudience []string `json:"granted_audience,omitempty"`
+	// Form holds the value of the "form" field.
+	Form url.Values `json:"form,omitempty"`
+	// Lang holds the value of the "lang" field.
+	Lang language.Tag `json:"lang,omitempty"`
 	// Active holds the value of the "active" field.
 	Active bool `json:"active,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AuthorizeCodesQuery when eager-loading is set.
 	Edges                  AuthorizeCodesEdges `json:"edges"`
-	request_authorize_code *string
+	clients_authorize_code *string
+	session_authorize_code *string
 	selectValues           sql.SelectValues
 }
 
 // AuthorizeCodesEdges holds the relations/edges for other nodes in the graph.
 type AuthorizeCodesEdges struct {
-	// RequestID holds the value of the request_id edge.
-	RequestID *Request `json:"request_id,omitempty"`
+	// ClientID holds the value of the client_id edge.
+	ClientID *Clients `json:"client_id,omitempty"`
+	// SessionID holds the value of the session_id edge.
+	SessionID *Session `json:"session_id,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
-// RequestIDOrErr returns the RequestID value or an error if the edge
+// ClientIDOrErr returns the ClientID value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AuthorizeCodesEdges) RequestIDOrErr() (*Request, error) {
+func (e AuthorizeCodesEdges) ClientIDOrErr() (*Clients, error) {
 	if e.loadedTypes[0] {
-		if e.RequestID == nil {
+		if e.ClientID == nil {
 			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: request.Label}
+			return nil, &NotFoundError{label: clients.Label}
 		}
-		return e.RequestID, nil
+		return e.ClientID, nil
 	}
-	return nil, &NotLoadedError{edge: "request_id"}
+	return nil, &NotLoadedError{edge: "client_id"}
+}
+
+// SessionIDOrErr returns the SessionID value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AuthorizeCodesEdges) SessionIDOrErr() (*Session, error) {
+	if e.loadedTypes[1] {
+		if e.SessionID == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: session.Label}
+		}
+		return e.SessionID, nil
+	}
+	return nil, &NotLoadedError{edge: "session_id"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -53,11 +90,17 @@ func (*AuthorizeCodes) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case authorizecodes.FieldScopes, authorizecodes.FieldGrantedScopes, authorizecodes.FieldRequestedAudience, authorizecodes.FieldGrantedAudience, authorizecodes.FieldForm, authorizecodes.FieldLang:
+			values[i] = new([]byte)
 		case authorizecodes.FieldActive:
 			values[i] = new(sql.NullBool)
-		case authorizecodes.FieldID:
+		case authorizecodes.FieldID, authorizecodes.FieldRequestID:
 			values[i] = new(sql.NullString)
-		case authorizecodes.ForeignKeys[0]: // request_authorize_code
+		case authorizecodes.FieldRequestedAt:
+			values[i] = new(sql.NullTime)
+		case authorizecodes.ForeignKeys[0]: // clients_authorize_code
+			values[i] = new(sql.NullString)
+		case authorizecodes.ForeignKeys[1]: // session_authorize_code
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -80,6 +123,66 @@ func (ac *AuthorizeCodes) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ac.ID = value.String
 			}
+		case authorizecodes.FieldRequestID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field request_id", values[i])
+			} else if value.Valid {
+				ac.RequestID = value.String
+			}
+		case authorizecodes.FieldRequestedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field requestedAt", values[i])
+			} else if value.Valid {
+				ac.RequestedAt = value.Time
+			}
+		case authorizecodes.FieldScopes:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field scopes", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &ac.Scopes); err != nil {
+					return fmt.Errorf("unmarshal field scopes: %w", err)
+				}
+			}
+		case authorizecodes.FieldGrantedScopes:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field granted_scopes", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &ac.GrantedScopes); err != nil {
+					return fmt.Errorf("unmarshal field granted_scopes: %w", err)
+				}
+			}
+		case authorizecodes.FieldRequestedAudience:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field requested_audience", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &ac.RequestedAudience); err != nil {
+					return fmt.Errorf("unmarshal field requested_audience: %w", err)
+				}
+			}
+		case authorizecodes.FieldGrantedAudience:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field granted_audience", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &ac.GrantedAudience); err != nil {
+					return fmt.Errorf("unmarshal field granted_audience: %w", err)
+				}
+			}
+		case authorizecodes.FieldForm:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field form", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &ac.Form); err != nil {
+					return fmt.Errorf("unmarshal field form: %w", err)
+				}
+			}
+		case authorizecodes.FieldLang:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field lang", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &ac.Lang); err != nil {
+					return fmt.Errorf("unmarshal field lang: %w", err)
+				}
+			}
 		case authorizecodes.FieldActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field active", values[i])
@@ -88,10 +191,17 @@ func (ac *AuthorizeCodes) assignValues(columns []string, values []any) error {
 			}
 		case authorizecodes.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field request_authorize_code", values[i])
+				return fmt.Errorf("unexpected type %T for field clients_authorize_code", values[i])
 			} else if value.Valid {
-				ac.request_authorize_code = new(string)
-				*ac.request_authorize_code = value.String
+				ac.clients_authorize_code = new(string)
+				*ac.clients_authorize_code = value.String
+			}
+		case authorizecodes.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field session_authorize_code", values[i])
+			} else if value.Valid {
+				ac.session_authorize_code = new(string)
+				*ac.session_authorize_code = value.String
 			}
 		default:
 			ac.selectValues.Set(columns[i], values[i])
@@ -106,9 +216,14 @@ func (ac *AuthorizeCodes) Value(name string) (ent.Value, error) {
 	return ac.selectValues.Get(name)
 }
 
-// QueryRequestID queries the "request_id" edge of the AuthorizeCodes entity.
-func (ac *AuthorizeCodes) QueryRequestID() *RequestQuery {
-	return NewAuthorizeCodesClient(ac.config).QueryRequestID(ac)
+// QueryClientID queries the "client_id" edge of the AuthorizeCodes entity.
+func (ac *AuthorizeCodes) QueryClientID() *ClientsQuery {
+	return NewAuthorizeCodesClient(ac.config).QueryClientID(ac)
+}
+
+// QuerySessionID queries the "session_id" edge of the AuthorizeCodes entity.
+func (ac *AuthorizeCodes) QuerySessionID() *SessionQuery {
+	return NewAuthorizeCodesClient(ac.config).QuerySessionID(ac)
 }
 
 // Update returns a builder for updating this AuthorizeCodes.
@@ -134,6 +249,30 @@ func (ac *AuthorizeCodes) String() string {
 	var builder strings.Builder
 	builder.WriteString("AuthorizeCodes(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ac.ID))
+	builder.WriteString("request_id=")
+	builder.WriteString(ac.RequestID)
+	builder.WriteString(", ")
+	builder.WriteString("requestedAt=")
+	builder.WriteString(ac.RequestedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("scopes=")
+	builder.WriteString(fmt.Sprintf("%v", ac.Scopes))
+	builder.WriteString(", ")
+	builder.WriteString("granted_scopes=")
+	builder.WriteString(fmt.Sprintf("%v", ac.GrantedScopes))
+	builder.WriteString(", ")
+	builder.WriteString("requested_audience=")
+	builder.WriteString(fmt.Sprintf("%v", ac.RequestedAudience))
+	builder.WriteString(", ")
+	builder.WriteString("granted_audience=")
+	builder.WriteString(fmt.Sprintf("%v", ac.GrantedAudience))
+	builder.WriteString(", ")
+	builder.WriteString("form=")
+	builder.WriteString(fmt.Sprintf("%v", ac.Form))
+	builder.WriteString(", ")
+	builder.WriteString("lang=")
+	builder.WriteString(fmt.Sprintf("%v", ac.Lang))
+	builder.WriteString(", ")
 	builder.WriteString("active=")
 	builder.WriteString(fmt.Sprintf("%v", ac.Active))
 	builder.WriteByte(')')

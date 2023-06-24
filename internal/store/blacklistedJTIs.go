@@ -5,7 +5,6 @@ import (
 	"authorization-service/ent/blacklistedjtis"
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/ory/fosite"
@@ -16,7 +15,7 @@ func createBlacklistedJTI(ctx context.Context, client *ent.Client, jit string, e
 		return fosite.ErrJTIKnown
 	}
 
-	u, err := client.BlacklistedJTIs.
+	_, err := client.BlacklistedJTIs.
 		Create().
 		SetID(jit).
 		SetExpiry(exp).
@@ -24,7 +23,6 @@ func createBlacklistedJTI(ctx context.Context, client *ent.Client, jit string, e
 	if err != nil {
 		return fmt.Errorf("failed creating a blacklistedJTI: %w", err)
 	}
-	log.Println("blacklistedJTI was created: ", u)
 	return nil
 }
 

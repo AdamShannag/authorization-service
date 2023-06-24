@@ -62,14 +62,14 @@ func main() {
 func seed(ctx context.Context, client *ent.Client) error {
 	_, err := client.User.Query().
 		Where(
-			user.Username("peter"),
+			user.ID("peter"),
 		).
 		Only(ctx)
 
 	switch {
 	case ent.IsNotFound(err):
 		_, err = client.User.Create().
-			SetUsername("peter").
+			SetID("peter").
 			SetPassword("secret").
 			Save(ctx)
 		if err != nil {

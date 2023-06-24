@@ -3,47 +3,84 @@
 package ent
 
 import (
+	"authorization-service/ent/clients"
 	"authorization-service/ent/pkces"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"golang.org/x/text/language"
 )
 
 // PKCES is the model entity for the PKCES schema.
 type PKCES struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
+	// RequestID holds the value of the "request_id" field.
+	RequestID string `json:"request_id,omitempty"`
+	// RequestedAt holds the value of the "requestedAt" field.
+	RequestedAt time.Time `json:"requestedAt,omitempty"`
+	// Scopes holds the value of the "scopes" field.
+	Scopes []string `json:"scopes,omitempty"`
+	// GrantedScopes holds the value of the "granted_scopes" field.
+	GrantedScopes []string `json:"granted_scopes,omitempty"`
+	// RequestedAudience holds the value of the "requested_audience" field.
+	RequestedAudience []string `json:"requested_audience,omitempty"`
+	// GrantedAudience holds the value of the "granted_audience" field.
+	GrantedAudience []string `json:"granted_audience,omitempty"`
+	// Form holds the value of the "form" field.
+	Form url.Values `json:"form,omitempty"`
+	// Lang holds the value of the "lang" field.
+	Lang language.Tag `json:"lang,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PKCESQuery when eager-loading is set.
 	Edges        PKCESEdges `json:"edges"`
-	request_pkce *string
+	clients_pkce *string
+	session_pkce *string
 	selectValues sql.SelectValues
 }
 
 // PKCESEdges holds the relations/edges for other nodes in the graph.
 type PKCESEdges struct {
-	// RequestID holds the value of the request_id edge.
-	RequestID *Request `json:"request_id,omitempty"`
+	// ClientID holds the value of the client_id edge.
+	ClientID *Clients `json:"client_id,omitempty"`
+	// SessionID holds the value of the session_id edge.
+	SessionID *Session `json:"session_id,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
-// RequestIDOrErr returns the RequestID value or an error if the edge
+// ClientIDOrErr returns the ClientID value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PKCESEdges) RequestIDOrErr() (*Request, error) {
+func (e PKCESEdges) ClientIDOrErr() (*Clients, error) {
 	if e.loadedTypes[0] {
-		if e.RequestID == nil {
+		if e.ClientID == nil {
 			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: request.Label}
+			return nil, &NotFoundError{label: clients.Label}
 		}
-		return e.RequestID, nil
+		return e.ClientID, nil
 	}
-	return nil, &NotLoadedError{edge: "request_id"}
+	return nil, &NotLoadedError{edge: "client_id"}
+}
+
+// SessionIDOrErr returns the SessionID value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PKCESEdges) SessionIDOrErr() (*Session, error) {
+	if e.loadedTypes[1] {
+		if e.SessionID == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: session.Label}
+		}
+		return e.SessionID, nil
+	}
+	return nil, &NotLoadedError{edge: "session_id"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -51,9 +88,15 @@ func (*PKCES) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case pkces.FieldID:
+		case pkces.FieldScopes, pkces.FieldGrantedScopes, pkces.FieldRequestedAudience, pkces.FieldGrantedAudience, pkces.FieldForm, pkces.FieldLang:
+			values[i] = new([]byte)
+		case pkces.FieldID, pkces.FieldRequestID:
 			values[i] = new(sql.NullString)
-		case pkces.ForeignKeys[0]: // request_pkce
+		case pkces.FieldRequestedAt:
+			values[i] = new(sql.NullTime)
+		case pkces.ForeignKeys[0]: // clients_pkce
+			values[i] = new(sql.NullString)
+		case pkces.ForeignKeys[1]: // session_pkce
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -76,12 +119,79 @@ func (pk *PKCES) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pk.ID = value.String
 			}
+		case pkces.FieldRequestID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field request_id", values[i])
+			} else if value.Valid {
+				pk.RequestID = value.String
+			}
+		case pkces.FieldRequestedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field requestedAt", values[i])
+			} else if value.Valid {
+				pk.RequestedAt = value.Time
+			}
+		case pkces.FieldScopes:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field scopes", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pk.Scopes); err != nil {
+					return fmt.Errorf("unmarshal field scopes: %w", err)
+				}
+			}
+		case pkces.FieldGrantedScopes:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field granted_scopes", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pk.GrantedScopes); err != nil {
+					return fmt.Errorf("unmarshal field granted_scopes: %w", err)
+				}
+			}
+		case pkces.FieldRequestedAudience:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field requested_audience", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pk.RequestedAudience); err != nil {
+					return fmt.Errorf("unmarshal field requested_audience: %w", err)
+				}
+			}
+		case pkces.FieldGrantedAudience:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field granted_audience", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pk.GrantedAudience); err != nil {
+					return fmt.Errorf("unmarshal field granted_audience: %w", err)
+				}
+			}
+		case pkces.FieldForm:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field form", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pk.Form); err != nil {
+					return fmt.Errorf("unmarshal field form: %w", err)
+				}
+			}
+		case pkces.FieldLang:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field lang", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pk.Lang); err != nil {
+					return fmt.Errorf("unmarshal field lang: %w", err)
+				}
+			}
 		case pkces.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field request_pkce", values[i])
+				return fmt.Errorf("unexpected type %T for field clients_pkce", values[i])
 			} else if value.Valid {
-				pk.request_pkce = new(string)
-				*pk.request_pkce = value.String
+				pk.clients_pkce = new(string)
+				*pk.clients_pkce = value.String
+			}
+		case pkces.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field session_pkce", values[i])
+			} else if value.Valid {
+				pk.session_pkce = new(string)
+				*pk.session_pkce = value.String
 			}
 		default:
 			pk.selectValues.Set(columns[i], values[i])
@@ -96,9 +206,14 @@ func (pk *PKCES) Value(name string) (ent.Value, error) {
 	return pk.selectValues.Get(name)
 }
 
-// QueryRequestID queries the "request_id" edge of the PKCES entity.
-func (pk *PKCES) QueryRequestID() *RequestQuery {
-	return NewPKCESClient(pk.config).QueryRequestID(pk)
+// QueryClientID queries the "client_id" edge of the PKCES entity.
+func (pk *PKCES) QueryClientID() *ClientsQuery {
+	return NewPKCESClient(pk.config).QueryClientID(pk)
+}
+
+// QuerySessionID queries the "session_id" edge of the PKCES entity.
+func (pk *PKCES) QuerySessionID() *SessionQuery {
+	return NewPKCESClient(pk.config).QuerySessionID(pk)
 }
 
 // Update returns a builder for updating this PKCES.
@@ -123,7 +238,30 @@ func (pk *PKCES) Unwrap() *PKCES {
 func (pk *PKCES) String() string {
 	var builder strings.Builder
 	builder.WriteString("PKCES(")
-	builder.WriteString(fmt.Sprintf("id=%v", pk.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", pk.ID))
+	builder.WriteString("request_id=")
+	builder.WriteString(pk.RequestID)
+	builder.WriteString(", ")
+	builder.WriteString("requestedAt=")
+	builder.WriteString(pk.RequestedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("scopes=")
+	builder.WriteString(fmt.Sprintf("%v", pk.Scopes))
+	builder.WriteString(", ")
+	builder.WriteString("granted_scopes=")
+	builder.WriteString(fmt.Sprintf("%v", pk.GrantedScopes))
+	builder.WriteString(", ")
+	builder.WriteString("requested_audience=")
+	builder.WriteString(fmt.Sprintf("%v", pk.RequestedAudience))
+	builder.WriteString(", ")
+	builder.WriteString("granted_audience=")
+	builder.WriteString(fmt.Sprintf("%v", pk.GrantedAudience))
+	builder.WriteString(", ")
+	builder.WriteString("form=")
+	builder.WriteString(fmt.Sprintf("%v", pk.Form))
+	builder.WriteString(", ")
+	builder.WriteString("lang=")
+	builder.WriteString(fmt.Sprintf("%v", pk.Lang))
 	builder.WriteByte(')')
 	return builder.String()
 }

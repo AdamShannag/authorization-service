@@ -33,9 +33,6 @@ type PublicKeyScopes func(*sql.Selector)
 // RefreshTokens is the predicate function for refreshtokens builders.
 type RefreshTokens func(*sql.Selector)
 
-// Request is the predicate function for request builders.
-type Request func(*sql.Selector)
-
 // Session is the predicate function for session builders.
 type Session func(*sql.Selector)
 

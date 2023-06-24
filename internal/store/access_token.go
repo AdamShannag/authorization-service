@@ -3,46 +3,64 @@ package store
 import (
 	"authorization-service/ent"
 	"context"
-	"fmt"
 	"log"
+	"time"
 
 	"github.com/ory/fosite"
+	"golang.org/x/text/language"
 )
 
 func createAccessToken(ctx context.Context, client *ent.Client, signature string, req fosite.Requester) error {
+	tokenTypes := []fosite.TokenType{fosite.AuthorizeCode, fosite.AccessToken, fosite.RefreshToken, fosite.IDToken, fosite.PushedAuthorizeRequestContext}
 
-	r, err := client.Request.Get(ctx, req.GetID())
+	m := map[string]time.Time{}
 
-	log.Println("\n\nREQ: ", req)
-	log.Println("\n\nR: ", r)
-
-	if err != nil {
-		return err
+	for _, s := range tokenTypes {
+		if req.GetSession().GetExpiresAt(s).After(time.Now()) {
+			m[string(s)] = req.GetSession().GetExpiresAt(s)
+		}
 	}
 
-	se, err := r.QuerySessionID().Only(ctx)
+	s, err := client.Session.Get(ctx, req.GetID())
 
-	if err != nil {
-		// log.Println(err)
-		return err
+	if err == nil {
+		s, err = client.Session.UpdateOneID(req.GetID()).Save(ctx)
+
+		if err != nil {
+			return fosite.ErrServerError
+		}
+	} else {
+
+		s, err = client.Session.Create().
+			SetID(req.GetID()).
+			SetExpiresAt(m).
+			SetUsername(req.GetSession().GetUsername()).
+			SetSubject(req.GetSession().GetSubject()).
+			SetSession(req.GetSession()).
+			Save(ctx)
+
+		if err != nil {
+			return fosite.ErrServerError
+		}
 	}
 
-	_, err = saveFositeSession(ctx, client, req.GetSession(), fosite.AccessToken, se.ID)
-
-	if err != nil {
-		// log.Println(err)
-		return err
-	}
-
-	u, err := client.AccessTokens.
+	_, err = client.AccessTokens.
 		Create().
 		SetID(signature).
-		SetRequestID(r).
+		SetRequestID(req.GetID()).
+		SetRequestedAt(req.GetRequestedAt()).
+		SetClientIDID(req.GetClient().GetID()).
+		SetSessionID(s).
+		SetScopes(req.GetRequestedScopes()).
+		SetGrantedScopes(req.GetGrantedScopes()).
+		SetForm(req.GetRequestForm()).
+		SetRequestedAudience(req.GetRequestedAudience()).
+		SetGrantedAudience(req.GetGrantedAudience()).
+		SetLang(language.English).
 		Save(ctx)
 	if err != nil {
-		return fmt.Errorf("failed creating an access_token: %w", err)
+		return fosite.ErrServerError
 	}
-	log.Println("access_token was created: ", u)
 	return nil
 }
 
@@ -54,23 +72,43 @@ func findAccessTokenBySignature(ctx context.Context, client *ent.Client, signatu
 		return nil, fosite.ErrNotFound
 	}
 
-	r, err := token.QueryRequestID().WithSessionID().WithClientID().Only(ctx)
+	c, err := token.QueryClientID().Only(ctx)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to find a request object: %w", err)
+		return nil, fosite.ErrNotFound
+	}
+
+	sessionEnt, err := client.Session.Get(ctx, token.RequestID)
+
+	if err != nil {
+		return nil, fosite.ErrNotFound
+	}
+
+	fSe,ok := sessionEnt.Session.(*fosite.Session)
+
+	if ok{
+		log.Println(fSe)
+	}
+
+
+	session := &fosite.DefaultSession{
+		ExpiresAt: getSessionExpiryAtFositeMap(sessionEnt.ExpiresAt),
+		Username:  sessionEnt.Username,
+		Subject:   sessionEnt.Subject,
+		Extra:     sessionEnt.Extra,
 	}
 
 	return &fosite.Request{
-		ID:                r.ID,
-		RequestedAt:       r.RequestedAt,
-		Client:            toFositeClient(r.Edges.ClientID),
-		Session:           toFositeSession(r.Edges.SessionID),
-		RequestedScope:    r.Scopes,
-		GrantedScope:      r.GrantedScopes,
-		Form:              r.Form,
-		RequestedAudience: r.RequestedAudience,
-		GrantedAudience:   r.GrantedAudience,
-		Lang:              r.Lang,
+		ID:                token.ID,
+		RequestedAt:       token.RequestedAt,
+		Client:            toFositeClient(c),
+		Session:           session,
+		RequestedScope:    token.Scopes,
+		GrantedScope:      token.GrantedScopes,
+		Form:              token.Form,
+		RequestedAudience: token.RequestedAudience,
+		GrantedAudience:   token.GrantedAudience,
+		Lang:              token.Lang,
 	}, nil
 }
 

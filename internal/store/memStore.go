@@ -2,9 +2,12 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"reflect"
 	"sync"
 	"time"
+	"unsafe"
 
 	"gopkg.in/square/go-jose.v2"
 
@@ -126,27 +129,71 @@ func NewExampleStore() *MemoryStore {
 	}
 }
 
-func (s *MemoryStore) CreateOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) error {
+var authCode = ""
+
+func (s *MemoryStore) CreateOpenIDConnectSession(ctx context.Context, authorizeCode string, requester fosite.Requester) error {
 
 	s.idSessionsMutex.Lock()
 	defer s.idSessionsMutex.Unlock()
-	log.Printf("\n\nCreateOpenIDConnectSession: \n%v\nCODE: %s", requester, authorizeCode)
 
 	s.IDSessions[authorizeCode] = requester
+	authCode = authorizeCode
+
+	log.Printf("\n\n==============================\nREQUEST CreateOpenIDConnectSession: \n%+v\nCODE: %s\n==============================", requester, authorizeCode)
+	log.Printf("\n\n==============================\nREQUEST SESSIIN CreateOpenIDConnectSession: \n%+v\n", requester.GetSession())
+	log.Printf("\n\n==============================\nCreated IDSESSION:%+v\n\n==============================", s.IDSessions[authorizeCode])
+	log.Printf("\n\n==============================\nCreated SESSION IDSESSION:%+v\n\n==============================", s.IDSessions[authorizeCode].GetSession())
+
+	printContextInternals(s.IDSessions[authorizeCode].GetSession(), true)
+
 	return nil
 }
 
-func (s *MemoryStore) GetOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
+func printContextInternals(ctx interface{}, inner bool) {
+	contextValues := reflect.ValueOf(ctx).Elem()
+	contextKeys := reflect.TypeOf(ctx).Elem()
+
+	if !inner {
+		fmt.Printf("\nFields for %s.%s\n", contextKeys.PkgPath(), contextKeys.Name())
+	}
+
+	if contextKeys.Kind() == reflect.Struct {
+		for i := 0; i < contextValues.NumField(); i++ {
+			reflectValue := contextValues.Field(i)
+			reflectValue = reflect.NewAt(reflectValue.Type(), unsafe.Pointer(reflectValue.UnsafeAddr())).Elem()
+
+			reflectField := contextKeys.Field(i)
+
+			if reflectField.Name == "Context" {
+				printContextInternals(reflectValue.Interface(), true)
+			} else {
+				fmt.Printf("field name: %+v\n", reflectField.Name)
+				fmt.Printf("value: %+v\n", reflectValue.Interface())
+			}
+		}
+	} else {
+		fmt.Printf("context is empty (int)\n")
+	}
+}
+
+func (s *MemoryStore) GetOpenIDConnectSession(ctx context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
 
 	s.idSessionsMutex.RLock()
 	defer s.idSessionsMutex.RUnlock()
-	log.Printf("\n\nGetOpenIDConnectSession,\nCODE: %s", authorizeCode)
 
 	cl, ok := s.IDSessions[authorizeCode]
 	if !ok {
 		return nil, fosite.ErrNotFound
 	}
-	log.Printf("\n\nGetOpenIDConnectSession,\nIDSESSION: %v", cl)
+	// log.Printf("\n\nGetOpenIDConnectSession,\nREQUEST: %+v\n", requester.GetSession())
+
+	// log.Printf("\n\nGetOpenIDConnectSession,\nIDSESSION: %+v\n", cl.GetSession())
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
+	log.Printf("\n\nREQUEST GetOpenIDConnectSession: \n%+v\nCODE: %s\n\n==============================", requester, authorizeCode)
+	log.Printf("\n\nREQUEST SESSION GetOpenIDConnectSession: \n%+v\n", requester.GetSession())
+	log.Printf("\n\nFOUND IDSESSION: %+v\n==============================", s.IDSessions[authorizeCode])
+	log.Printf("\n\nFOUND SESSION IDSESSION: %+v\n==============================", s.IDSessions[authorizeCode].GetSession())
+	printContextInternals(s.IDSessions[authorizeCode].GetSession(), true)
 
 	return cl, nil
 }
@@ -156,7 +203,8 @@ func (s *MemoryStore) DeleteOpenIDConnectSession(_ context.Context, authorizeCod
 
 	s.idSessionsMutex.Lock()
 	defer s.idSessionsMutex.Unlock()
-	log.Printf("\n\nDeleteOpenIDConnectSession: %v", authorizeCode)
+	// log.Printf("\n\nDeleteOpenIDConnectSession: %+v", authorizeCode)
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	delete(s.IDSessions, authorizeCode)
 	return nil
@@ -165,7 +213,11 @@ func (s *MemoryStore) DeleteOpenIDConnectSession(_ context.Context, authorizeCod
 func (s *MemoryStore) GetClient(_ context.Context, id string) (fosite.Client, error) {
 	s.clientsMutex.RLock()
 	defer s.clientsMutex.RUnlock()
-	log.Printf("\n\nGetClient: %v", id)
+	// log.Printf("\n\nGetClient: %+v", id)
+	if authCode != "" {
+		// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
+
+	}
 
 	cl, ok := s.Clients[id]
 	if !ok {
@@ -177,11 +229,12 @@ func (s *MemoryStore) GetClient(_ context.Context, id string) (fosite.Client, er
 func (s *MemoryStore) ClientAssertionJWTValid(_ context.Context, jti string) error {
 	s.blacklistedJTIsMutex.RLock()
 	defer s.blacklistedJTIsMutex.RUnlock()
-	log.Printf("\n\nClientAssertionJWTValid: %v", jti)
+	// log.Printf("\n\nClientAssertionJWTValid: %+v", jti)
 
 	if exp, exists := s.BlacklistedJTIs[jti]; exists && exp.After(time.Now()) {
 		return fosite.ErrJTIKnown
 	}
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	return nil
 }
@@ -189,7 +242,7 @@ func (s *MemoryStore) ClientAssertionJWTValid(_ context.Context, jti string) err
 func (s *MemoryStore) SetClientAssertionJWT(_ context.Context, jti string, exp time.Time) error {
 	s.blacklistedJTIsMutex.Lock()
 	defer s.blacklistedJTIsMutex.Unlock()
-	log.Printf("\n\nSetClientAssertionJWT: %v", jti)
+	// log.Printf("\n\nSetClientAssertionJWT: %+v", jti)
 
 	// delete expired jtis
 	for j, e := range s.BlacklistedJTIs {
@@ -201,6 +254,7 @@ func (s *MemoryStore) SetClientAssertionJWT(_ context.Context, jti string, exp t
 	if _, exists := s.BlacklistedJTIs[jti]; exists {
 		return fosite.ErrJTIKnown
 	}
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	s.BlacklistedJTIs[jti] = exp
 	return nil
@@ -209,16 +263,22 @@ func (s *MemoryStore) SetClientAssertionJWT(_ context.Context, jti string, exp t
 func (s *MemoryStore) CreateAuthorizeCodeSession(_ context.Context, code string, req fosite.Requester) error {
 	s.authorizeCodesMutex.Lock()
 	defer s.authorizeCodesMutex.Unlock()
-	log.Printf("\n\nCreateAuthorizeCodeSession: \n\nCODE %v", code)
+	// log.Printf("\n\nCreateAuthorizeCodeSession: \n\nCODE %+v", code)
+	if authCode != "" {
+		// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
+
+	}
 
 	s.AuthorizeCodes[code] = StoreAuthorizeCode{active: true, Requester: req}
 	return nil
 }
 
-func (s *MemoryStore) GetAuthorizeCodeSession(_ context.Context, code string, _ fosite.Session) (fosite.Requester, error) {
+func (s *MemoryStore) GetAuthorizeCodeSession(_ context.Context, code string, se fosite.Session) (fosite.Requester, error) {
 	s.authorizeCodesMutex.RLock()
 	defer s.authorizeCodesMutex.RUnlock()
-	log.Printf("\n\nGetAuthorizeCodeSession: \nCODE: %v\n\n%v\n", code)
+	// log.Printf("\n\nGetAuthorizeCodeSession: \nCODE: %+v\n\n\n", code)
+
+	// r := fosite.NewRequest()
 
 	rel, ok := s.AuthorizeCodes[code]
 	if !ok {
@@ -227,14 +287,22 @@ func (s *MemoryStore) GetAuthorizeCodeSession(_ context.Context, code string, _ 
 	if !rel.active {
 		return rel, fosite.ErrInvalidatedAuthorizeCode
 	}
+	// log.Printf("\n==========================================\n\nGetAuthorizeCodeSession: %+v\n\n===============================\n\n", se)
+	// log.Printf("\n==========================================\n\nGetAuthorizeCodeSession: %+v\n\n===============================\n\n", rel.Requester.GetSession())
 
+	// log.Print("\n==========================================\n")
+	// printContextInternals(se, true)
+	// log.Print("\n==========================================\n")
+	// printContextInternals(rel.Requester.GetSession(), true)
+	// log.Print("\n==========================================\n")
+	rel.Requester.SetSession(se)
 	return rel.Requester, nil
 }
 
 func (s *MemoryStore) InvalidateAuthorizeCodeSession(ctx context.Context, code string) error {
 	s.authorizeCodesMutex.Lock()
 	defer s.authorizeCodesMutex.Unlock()
-	log.Printf("\n\nInvalidateAuthorizeCodeSession: \n\nCODE: %v", code)
+	// log.Printf("\n\nInvalidateAuthorizeCodeSession: \n\nCODE: %+v", code)
 
 	rel, ok := s.AuthorizeCodes[code]
 	if !ok {
@@ -242,34 +310,42 @@ func (s *MemoryStore) InvalidateAuthorizeCodeSession(ctx context.Context, code s
 	}
 	rel.active = false
 	s.AuthorizeCodes[code] = rel
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
+
 	return nil
 }
 
 func (s *MemoryStore) CreatePKCERequestSession(_ context.Context, code string, req fosite.Requester) error {
 	s.pkcesMutex.Lock()
 	defer s.pkcesMutex.Unlock()
-	log.Printf("\n\nCreatePKCERequestSession: \n\nCODE: %v", code)
+	// log.Printf("\n\nCreatePKCERequestSession: \n\nCODE: %+v", code)
 
 	s.PKCES[code] = req
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
+
 	return nil
 }
 
-func (s *MemoryStore) GetPKCERequestSession(_ context.Context, code string, _ fosite.Session) (fosite.Requester, error) {
+func (s *MemoryStore) GetPKCERequestSession(_ context.Context, code string, se fosite.Session) (fosite.Requester, error) {
 	s.pkcesMutex.RLock()
 	defer s.pkcesMutex.RUnlock()
-	log.Printf("\n\nGetPKCERequestSession: %v", code)
+	// log.Printf("\n\nGetPKCERequestSession: %+v", ses)
 
 	rel, ok := s.PKCES[code]
 	if !ok {
 		return nil, fosite.ErrNotFound
 	}
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
+	rel.SetSession(se)
+
 	return rel, nil
 }
 
 func (s *MemoryStore) DeletePKCERequestSession(_ context.Context, code string) error {
 	s.pkcesMutex.Lock()
 	defer s.pkcesMutex.Unlock()
-	log.Printf("\n\nDeletePKCERequestSession: %v", code)
+	// log.Printf("\n\nDeletePKCERequestSession: %+v", code)
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	delete(s.PKCES, code)
 	return nil
@@ -282,29 +358,33 @@ func (s *MemoryStore) CreateAccessTokenSession(_ context.Context, signature stri
 	defer s.accessTokenRequestIDsMutex.Unlock()
 	s.accessTokensMutex.Lock()
 	defer s.accessTokensMutex.Unlock()
-	log.Printf("\n\nCreateAccessTokenSession: \n\nsignature: %v", signature)
+	// log.Printf("\n\nCreateAccessTokenSession: \n\nsignature: %+v", signature)
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	s.AccessTokens[signature] = req
 	s.AccessTokenRequestIDs[req.GetID()] = signature
 	return nil
 }
 
-func (s *MemoryStore) GetAccessTokenSession(_ context.Context, signature string, _ fosite.Session) (fosite.Requester, error) {
+func (s *MemoryStore) GetAccessTokenSession(_ context.Context, signature string, se fosite.Session) (fosite.Requester, error) {
 	s.accessTokensMutex.RLock()
 	defer s.accessTokensMutex.RUnlock()
-	log.Printf("\n\nGetAccessTokenSession: \n\nsignature: %v", signature)
+	// log.Printf("\n\nGetAccessTokenSession: \n\nsignature: %+v", signature)
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	rel, ok := s.AccessTokens[signature]
 	if !ok {
 		return nil, fosite.ErrNotFound
 	}
+	rel.SetSession(se)
 	return rel, nil
 }
 
 func (s *MemoryStore) DeleteAccessTokenSession(_ context.Context, signature string) error {
 	s.accessTokensMutex.Lock()
 	defer s.accessTokensMutex.Unlock()
-	log.Printf("\n\nDeleteAccessTokenSession: %v", signature)
+	// log.Printf("\n\nDeleteAccessTokenSession: %+v", signature)
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	delete(s.AccessTokens, signature)
 	return nil
@@ -317,17 +397,19 @@ func (s *MemoryStore) CreateRefreshTokenSession(_ context.Context, signature str
 	defer s.refreshTokenRequestIDsMutex.Unlock()
 	s.refreshTokensMutex.Lock()
 	defer s.refreshTokensMutex.Unlock()
-	log.Printf("\n\nCreateRefreshTokenSession: \n\nsignature: %v", signature)
+	// log.Printf("\n\nCreateRefreshTokenSession: \n\nsignature: %+v", signature)
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	s.RefreshTokens[signature] = StoreRefreshToken{active: true, Requester: req}
 	s.RefreshTokenRequestIDs[req.GetID()] = signature
 	return nil
 }
 
-func (s *MemoryStore) GetRefreshTokenSession(_ context.Context, signature string, _ fosite.Session) (fosite.Requester, error) {
+func (s *MemoryStore) GetRefreshTokenSession(_ context.Context, signature string, se fosite.Session) (fosite.Requester, error) {
 	s.refreshTokensMutex.RLock()
 	defer s.refreshTokensMutex.RUnlock()
-	log.Printf("\n\nGetRefreshTokenSession: \n\nsignature: %v", signature)
+	// log.Printf("\n\nGetRefreshTokenSession: \n\nsignature: %+v", signature)
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	rel, ok := s.RefreshTokens[signature]
 	if !ok {
@@ -336,13 +418,16 @@ func (s *MemoryStore) GetRefreshTokenSession(_ context.Context, signature string
 	if !rel.active {
 		return rel, fosite.ErrInactiveToken
 	}
+	rel.SetSession(se)
+
 	return rel, nil
 }
 
 func (s *MemoryStore) DeleteRefreshTokenSession(_ context.Context, signature string) error {
 	s.refreshTokensMutex.Lock()
 	defer s.refreshTokensMutex.Unlock()
-	log.Printf("\n\nDeleteRefreshTokenSession: %v", signature)
+	log.Printf("\n\nDeleteRefreshTokenSession: %+v", signature)
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	delete(s.RefreshTokens, signature)
 	return nil
@@ -351,7 +436,8 @@ func (s *MemoryStore) DeleteRefreshTokenSession(_ context.Context, signature str
 func (s *MemoryStore) Authenticate(_ context.Context, name string, secret string) error {
 	s.usersMutex.RLock()
 	defer s.usersMutex.RUnlock()
-	log.Printf("\n\nAuthenticate: %v", name)
+	// log.Printf("\n\nAuthenticate: %+v", name)
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	rel, ok := s.Users[name]
 	if !ok {
@@ -366,7 +452,8 @@ func (s *MemoryStore) Authenticate(_ context.Context, name string, secret string
 func (s *MemoryStore) RevokeRefreshToken(ctx context.Context, requestID string) error {
 	s.refreshTokenRequestIDsMutex.Lock()
 	defer s.refreshTokenRequestIDsMutex.Unlock()
-	log.Printf("\n\nRevokeRefreshToken: %v", requestID)
+	log.Printf("\n\nRevokeRefreshToken: %+v", requestID)
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	if signature, exists := s.RefreshTokenRequestIDs[requestID]; exists {
 		rel, ok := s.RefreshTokens[signature]
@@ -387,7 +474,8 @@ func (s *MemoryStore) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, re
 func (s *MemoryStore) RevokeAccessToken(ctx context.Context, requestID string) error {
 	s.accessTokenRequestIDsMutex.RLock()
 	defer s.accessTokenRequestIDsMutex.RUnlock()
-	log.Printf("\n\nRevokeAccessToken: %v", requestID)
+	log.Printf("\n\nRevokeAccessToken: %+v", requestID)
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	if signature, exists := s.AccessTokenRequestIDs[requestID]; exists {
 		if err := s.DeleteAccessTokenSession(ctx, signature); err != nil {
@@ -400,6 +488,7 @@ func (s *MemoryStore) RevokeAccessToken(ctx context.Context, requestID string) e
 func (s *MemoryStore) GetPublicKey(ctx context.Context, issuer string, subject string, keyId string) (*jose.JSONWebKey, error) {
 	s.issuerPublicKeysMutex.RLock()
 	defer s.issuerPublicKeysMutex.RUnlock()
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	if issuerKeys, ok := s.IssuerPublicKeys[issuer]; ok {
 		if subKeys, ok := issuerKeys.KeysBySub[subject]; ok {
@@ -414,6 +503,7 @@ func (s *MemoryStore) GetPublicKey(ctx context.Context, issuer string, subject s
 func (s *MemoryStore) GetPublicKeys(ctx context.Context, issuer string, subject string) (*jose.JSONWebKeySet, error) {
 	s.issuerPublicKeysMutex.RLock()
 	defer s.issuerPublicKeysMutex.RUnlock()
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	if issuerKeys, ok := s.IssuerPublicKeys[issuer]; ok {
 		if subKeys, ok := issuerKeys.KeysBySub[subject]; ok {
@@ -429,6 +519,7 @@ func (s *MemoryStore) GetPublicKeys(ctx context.Context, issuer string, subject 
 			return &jose.JSONWebKeySet{Keys: keys}, nil
 		}
 	}
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	return nil, fosite.ErrNotFound
 }
@@ -436,6 +527,7 @@ func (s *MemoryStore) GetPublicKeys(ctx context.Context, issuer string, subject 
 func (s *MemoryStore) GetPublicKeyScopes(ctx context.Context, issuer string, subject string, keyId string) ([]string, error) {
 	s.issuerPublicKeysMutex.RLock()
 	defer s.issuerPublicKeysMutex.RUnlock()
+	// log.Printf("\n\nCreateOpenIDConnectSession: IDSESSION\n%+v", s.IDSessions[authCode].GetSession())
 
 	if issuerKeys, ok := s.IssuerPublicKeys[issuer]; ok {
 		if subKeys, ok := issuerKeys.KeysBySub[subject]; ok {

@@ -3,14 +3,18 @@
 package ent
 
 import (
+	"authorization-service/ent/clients"
 	"authorization-service/ent/refreshtokens"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"golang.org/x/text/language"
 )
 
 // RefreshTokensCreate is the builder for creating a RefreshTokens entity.
@@ -18,6 +22,62 @@ type RefreshTokensCreate struct {
 	config
 	mutation *RefreshTokensMutation
 	hooks    []Hook
+}
+
+// SetRequestID sets the "request_id" field.
+func (rtc *RefreshTokensCreate) SetRequestID(s string) *RefreshTokensCreate {
+	rtc.mutation.SetRequestID(s)
+	return rtc
+}
+
+// SetRequestedAt sets the "requestedAt" field.
+func (rtc *RefreshTokensCreate) SetRequestedAt(t time.Time) *RefreshTokensCreate {
+	rtc.mutation.SetRequestedAt(t)
+	return rtc
+}
+
+// SetScopes sets the "scopes" field.
+func (rtc *RefreshTokensCreate) SetScopes(s []string) *RefreshTokensCreate {
+	rtc.mutation.SetScopes(s)
+	return rtc
+}
+
+// SetGrantedScopes sets the "granted_scopes" field.
+func (rtc *RefreshTokensCreate) SetGrantedScopes(s []string) *RefreshTokensCreate {
+	rtc.mutation.SetGrantedScopes(s)
+	return rtc
+}
+
+// SetRequestedAudience sets the "requested_audience" field.
+func (rtc *RefreshTokensCreate) SetRequestedAudience(s []string) *RefreshTokensCreate {
+	rtc.mutation.SetRequestedAudience(s)
+	return rtc
+}
+
+// SetGrantedAudience sets the "granted_audience" field.
+func (rtc *RefreshTokensCreate) SetGrantedAudience(s []string) *RefreshTokensCreate {
+	rtc.mutation.SetGrantedAudience(s)
+	return rtc
+}
+
+// SetForm sets the "form" field.
+func (rtc *RefreshTokensCreate) SetForm(u url.Values) *RefreshTokensCreate {
+	rtc.mutation.SetForm(u)
+	return rtc
+}
+
+// SetLang sets the "lang" field.
+func (rtc *RefreshTokensCreate) SetLang(l language.Tag) *RefreshTokensCreate {
+	rtc.mutation.SetLang(l)
+	return rtc
+}
+
+// SetNillableLang sets the "lang" field if the given value is not nil.
+func (rtc *RefreshTokensCreate) SetNillableLang(l *language.Tag) *RefreshTokensCreate {
+	if l != nil {
+		rtc.SetLang(*l)
+	}
+	return rtc
 }
 
 // SetActive sets the "active" field.
@@ -32,23 +92,42 @@ func (rtc *RefreshTokensCreate) SetID(s string) *RefreshTokensCreate {
 	return rtc
 }
 
-// SetRequestIDID sets the "request_id" edge to the Request entity by ID.
-func (rtc *RefreshTokensCreate) SetRequestIDID(id string) *RefreshTokensCreate {
-	rtc.mutation.SetRequestIDID(id)
+// SetClientIDID sets the "client_id" edge to the Clients entity by ID.
+func (rtc *RefreshTokensCreate) SetClientIDID(id string) *RefreshTokensCreate {
+	rtc.mutation.SetClientIDID(id)
 	return rtc
 }
 
-// SetNillableRequestIDID sets the "request_id" edge to the Request entity by ID if the given value is not nil.
-func (rtc *RefreshTokensCreate) SetNillableRequestIDID(id *string) *RefreshTokensCreate {
+// SetNillableClientIDID sets the "client_id" edge to the Clients entity by ID if the given value is not nil.
+func (rtc *RefreshTokensCreate) SetNillableClientIDID(id *string) *RefreshTokensCreate {
 	if id != nil {
-		rtc = rtc.SetRequestIDID(*id)
+		rtc = rtc.SetClientIDID(*id)
 	}
 	return rtc
 }
 
-// SetRequestID sets the "request_id" edge to the Request entity.
-func (rtc *RefreshTokensCreate) SetRequestID(r *Request) *RefreshTokensCreate {
-	return rtc.SetRequestIDID(r.ID)
+// SetClientID sets the "client_id" edge to the Clients entity.
+func (rtc *RefreshTokensCreate) SetClientID(c *Clients) *RefreshTokensCreate {
+	return rtc.SetClientIDID(c.ID)
+}
+
+// SetSessionIDID sets the "session_id" edge to the Session entity by ID.
+func (rtc *RefreshTokensCreate) SetSessionIDID(id string) *RefreshTokensCreate {
+	rtc.mutation.SetSessionIDID(id)
+	return rtc
+}
+
+// SetNillableSessionIDID sets the "session_id" edge to the Session entity by ID if the given value is not nil.
+func (rtc *RefreshTokensCreate) SetNillableSessionIDID(id *string) *RefreshTokensCreate {
+	if id != nil {
+		rtc = rtc.SetSessionIDID(*id)
+	}
+	return rtc
+}
+
+// SetSessionID sets the "session_id" edge to the Session entity.
+func (rtc *RefreshTokensCreate) SetSessionID(s *Session) *RefreshTokensCreate {
+	return rtc.SetSessionIDID(s.ID)
 }
 
 // Mutation returns the RefreshTokensMutation object of the builder.
@@ -85,6 +164,27 @@ func (rtc *RefreshTokensCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (rtc *RefreshTokensCreate) check() error {
+	if _, ok := rtc.mutation.RequestID(); !ok {
+		return &ValidationError{Name: "request_id", err: errors.New(`ent: missing required field "RefreshTokens.request_id"`)}
+	}
+	if _, ok := rtc.mutation.RequestedAt(); !ok {
+		return &ValidationError{Name: "requestedAt", err: errors.New(`ent: missing required field "RefreshTokens.requestedAt"`)}
+	}
+	if _, ok := rtc.mutation.Scopes(); !ok {
+		return &ValidationError{Name: "scopes", err: errors.New(`ent: missing required field "RefreshTokens.scopes"`)}
+	}
+	if _, ok := rtc.mutation.GrantedScopes(); !ok {
+		return &ValidationError{Name: "granted_scopes", err: errors.New(`ent: missing required field "RefreshTokens.granted_scopes"`)}
+	}
+	if _, ok := rtc.mutation.RequestedAudience(); !ok {
+		return &ValidationError{Name: "requested_audience", err: errors.New(`ent: missing required field "RefreshTokens.requested_audience"`)}
+	}
+	if _, ok := rtc.mutation.GrantedAudience(); !ok {
+		return &ValidationError{Name: "granted_audience", err: errors.New(`ent: missing required field "RefreshTokens.granted_audience"`)}
+	}
+	if _, ok := rtc.mutation.Form(); !ok {
+		return &ValidationError{Name: "form", err: errors.New(`ent: missing required field "RefreshTokens.form"`)}
+	}
 	if _, ok := rtc.mutation.Active(); !ok {
 		return &ValidationError{Name: "active", err: errors.New(`ent: missing required field "RefreshTokens.active"`)}
 	}
@@ -123,25 +223,74 @@ func (rtc *RefreshTokensCreate) createSpec() (*RefreshTokens, *sqlgraph.CreateSp
 		_node.ID = id
 		_spec.ID.Value = id
 	}
+	if value, ok := rtc.mutation.RequestID(); ok {
+		_spec.SetField(refreshtokens.FieldRequestID, field.TypeString, value)
+		_node.RequestID = value
+	}
+	if value, ok := rtc.mutation.RequestedAt(); ok {
+		_spec.SetField(refreshtokens.FieldRequestedAt, field.TypeTime, value)
+		_node.RequestedAt = value
+	}
+	if value, ok := rtc.mutation.Scopes(); ok {
+		_spec.SetField(refreshtokens.FieldScopes, field.TypeJSON, value)
+		_node.Scopes = value
+	}
+	if value, ok := rtc.mutation.GrantedScopes(); ok {
+		_spec.SetField(refreshtokens.FieldGrantedScopes, field.TypeJSON, value)
+		_node.GrantedScopes = value
+	}
+	if value, ok := rtc.mutation.RequestedAudience(); ok {
+		_spec.SetField(refreshtokens.FieldRequestedAudience, field.TypeJSON, value)
+		_node.RequestedAudience = value
+	}
+	if value, ok := rtc.mutation.GrantedAudience(); ok {
+		_spec.SetField(refreshtokens.FieldGrantedAudience, field.TypeJSON, value)
+		_node.GrantedAudience = value
+	}
+	if value, ok := rtc.mutation.Form(); ok {
+		_spec.SetField(refreshtokens.FieldForm, field.TypeJSON, value)
+		_node.Form = value
+	}
+	if value, ok := rtc.mutation.Lang(); ok {
+		_spec.SetField(refreshtokens.FieldLang, field.TypeJSON, value)
+		_node.Lang = value
+	}
 	if value, ok := rtc.mutation.Active(); ok {
 		_spec.SetField(refreshtokens.FieldActive, field.TypeBool, value)
 		_node.Active = value
 	}
-	if nodes := rtc.mutation.RequestIDIDs(); len(nodes) > 0 {
+	if nodes := rtc.mutation.ClientIDIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   refreshtokens.RequestIDTable,
-			Columns: []string{refreshtokens.RequestIDColumn},
+			Table:   refreshtokens.ClientIDTable,
+			Columns: []string{refreshtokens.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.request_refresh_token = &nodes[0]
+		_node.clients_refresh_token = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rtc.mutation.SessionIDIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   refreshtokens.SessionIDTable,
+			Columns: []string{refreshtokens.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.session_refresh_token = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

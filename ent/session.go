@@ -26,6 +26,8 @@ type Session struct {
 	Subject string `json:"subject,omitempty"`
 	// Extra holds the value of the "extra" field.
 	Extra map[string]interface{} `json:"extra,omitempty"`
+	// Session holds the value of the "session" field.
+	Session any `json:"session,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SessionQuery when eager-loading is set.
 	Edges        SessionEdges `json:"edges"`
@@ -34,20 +36,64 @@ type Session struct {
 
 // SessionEdges holds the relations/edges for other nodes in the graph.
 type SessionEdges struct {
-	// Requests holds the value of the requests edge.
-	Requests []*Request `json:"requests,omitempty"`
+	// AccessToken holds the value of the access_token edge.
+	AccessToken []*AccessTokens `json:"access_token,omitempty"`
+	// AuthorizeCode holds the value of the authorize_code edge.
+	AuthorizeCode []*AuthorizeCodes `json:"authorize_code,omitempty"`
+	// RefreshToken holds the value of the refresh_token edge.
+	RefreshToken []*RefreshTokens `json:"refresh_token,omitempty"`
+	// IDSession holds the value of the id_session edge.
+	IDSession []*IDSessions `json:"id_session,omitempty"`
+	// Pkce holds the value of the pkce edge.
+	Pkce []*PKCES `json:"pkce,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [5]bool
 }
 
-// RequestsOrErr returns the Requests value or an error if the edge
+// AccessTokenOrErr returns the AccessToken value or an error if the edge
 // was not loaded in eager-loading.
-func (e SessionEdges) RequestsOrErr() ([]*Request, error) {
+func (e SessionEdges) AccessTokenOrErr() ([]*AccessTokens, error) {
 	if e.loadedTypes[0] {
-		return e.Requests, nil
+		return e.AccessToken, nil
 	}
-	return nil, &NotLoadedError{edge: "requests"}
+	return nil, &NotLoadedError{edge: "access_token"}
+}
+
+// AuthorizeCodeOrErr returns the AuthorizeCode value or an error if the edge
+// was not loaded in eager-loading.
+func (e SessionEdges) AuthorizeCodeOrErr() ([]*AuthorizeCodes, error) {
+	if e.loadedTypes[1] {
+		return e.AuthorizeCode, nil
+	}
+	return nil, &NotLoadedError{edge: "authorize_code"}
+}
+
+// RefreshTokenOrErr returns the RefreshToken value or an error if the edge
+// was not loaded in eager-loading.
+func (e SessionEdges) RefreshTokenOrErr() ([]*RefreshTokens, error) {
+	if e.loadedTypes[2] {
+		return e.RefreshToken, nil
+	}
+	return nil, &NotLoadedError{edge: "refresh_token"}
+}
+
+// IDSessionOrErr returns the IDSession value or an error if the edge
+// was not loaded in eager-loading.
+func (e SessionEdges) IDSessionOrErr() ([]*IDSessions, error) {
+	if e.loadedTypes[3] {
+		return e.IDSession, nil
+	}
+	return nil, &NotLoadedError{edge: "id_session"}
+}
+
+// PkceOrErr returns the Pkce value or an error if the edge
+// was not loaded in eager-loading.
+func (e SessionEdges) PkceOrErr() ([]*PKCES, error) {
+	if e.loadedTypes[4] {
+		return e.Pkce, nil
+	}
+	return nil, &NotLoadedError{edge: "pkce"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -55,7 +101,7 @@ func (*Session) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case session.FieldExpiresAt, session.FieldExtra:
+		case session.FieldExpiresAt, session.FieldExtra, session.FieldSession:
 			values[i] = new([]byte)
 		case session.FieldID, session.FieldUsername, session.FieldSubject:
 			values[i] = new(sql.NullString)
@@ -108,6 +154,14 @@ func (s *Session) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field extra: %w", err)
 				}
 			}
+		case session.FieldSession:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field session", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &s.Session); err != nil {
+					return fmt.Errorf("unmarshal field session: %w", err)
+				}
+			}
 		default:
 			s.selectValues.Set(columns[i], values[i])
 		}
@@ -121,9 +175,29 @@ func (s *Session) Value(name string) (ent.Value, error) {
 	return s.selectValues.Get(name)
 }
 
-// QueryRequests queries the "requests" edge of the Session entity.
-func (s *Session) QueryRequests() *RequestQuery {
-	return NewSessionClient(s.config).QueryRequests(s)
+// QueryAccessToken queries the "access_token" edge of the Session entity.
+func (s *Session) QueryAccessToken() *AccessTokensQuery {
+	return NewSessionClient(s.config).QueryAccessToken(s)
+}
+
+// QueryAuthorizeCode queries the "authorize_code" edge of the Session entity.
+func (s *Session) QueryAuthorizeCode() *AuthorizeCodesQuery {
+	return NewSessionClient(s.config).QueryAuthorizeCode(s)
+}
+
+// QueryRefreshToken queries the "refresh_token" edge of the Session entity.
+func (s *Session) QueryRefreshToken() *RefreshTokensQuery {
+	return NewSessionClient(s.config).QueryRefreshToken(s)
+}
+
+// QueryIDSession queries the "id_session" edge of the Session entity.
+func (s *Session) QueryIDSession() *IDSessionsQuery {
+	return NewSessionClient(s.config).QueryIDSession(s)
+}
+
+// QueryPkce queries the "pkce" edge of the Session entity.
+func (s *Session) QueryPkce() *PKCESQuery {
+	return NewSessionClient(s.config).QueryPkce(s)
 }
 
 // Update returns a builder for updating this Session.
@@ -160,6 +234,9 @@ func (s *Session) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("extra=")
 	builder.WriteString(fmt.Sprintf("%v", s.Extra))
+	builder.WriteString(", ")
+	builder.WriteString("session=")
+	builder.WriteString(fmt.Sprintf("%v", s.Session))
 	builder.WriteByte(')')
 	return builder.String()
 }

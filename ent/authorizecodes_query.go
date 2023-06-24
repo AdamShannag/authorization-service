@@ -4,8 +4,9 @@ package ent
 
 import (
 	"authorization-service/ent/authorizecodes"
+	"authorization-service/ent/clients"
 	"authorization-service/ent/predicate"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
 	"context"
 	"fmt"
 	"math"
@@ -22,7 +23,8 @@ type AuthorizeCodesQuery struct {
 	order         []authorizecodes.OrderOption
 	inters        []Interceptor
 	predicates    []predicate.AuthorizeCodes
-	withRequestID *RequestQuery
+	withClientID  *ClientsQuery
+	withSessionID *SessionQuery
 	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -60,9 +62,9 @@ func (acq *AuthorizeCodesQuery) Order(o ...authorizecodes.OrderOption) *Authoriz
 	return acq
 }
 
-// QueryRequestID chains the current query on the "request_id" edge.
-func (acq *AuthorizeCodesQuery) QueryRequestID() *RequestQuery {
-	query := (&RequestClient{config: acq.config}).Query()
+// QueryClientID chains the current query on the "client_id" edge.
+func (acq *AuthorizeCodesQuery) QueryClientID() *ClientsQuery {
+	query := (&ClientsClient{config: acq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := acq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -73,8 +75,30 @@ func (acq *AuthorizeCodesQuery) QueryRequestID() *RequestQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(authorizecodes.Table, authorizecodes.FieldID, selector),
-			sqlgraph.To(request.Table, request.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, authorizecodes.RequestIDTable, authorizecodes.RequestIDColumn),
+			sqlgraph.To(clients.Table, clients.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, authorizecodes.ClientIDTable, authorizecodes.ClientIDColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(acq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySessionID chains the current query on the "session_id" edge.
+func (acq *AuthorizeCodesQuery) QuerySessionID() *SessionQuery {
+	query := (&SessionClient{config: acq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := acq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := acq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(authorizecodes.Table, authorizecodes.FieldID, selector),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, authorizecodes.SessionIDTable, authorizecodes.SessionIDColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(acq.driver.Dialect(), step)
 		return fromU, nil
@@ -274,21 +298,33 @@ func (acq *AuthorizeCodesQuery) Clone() *AuthorizeCodesQuery {
 		order:         append([]authorizecodes.OrderOption{}, acq.order...),
 		inters:        append([]Interceptor{}, acq.inters...),
 		predicates:    append([]predicate.AuthorizeCodes{}, acq.predicates...),
-		withRequestID: acq.withRequestID.Clone(),
+		withClientID:  acq.withClientID.Clone(),
+		withSessionID: acq.withSessionID.Clone(),
 		// clone intermediate query.
 		sql:  acq.sql.Clone(),
 		path: acq.path,
 	}
 }
 
-// WithRequestID tells the query-builder to eager-load the nodes that are connected to
-// the "request_id" edge. The optional arguments are used to configure the query builder of the edge.
-func (acq *AuthorizeCodesQuery) WithRequestID(opts ...func(*RequestQuery)) *AuthorizeCodesQuery {
-	query := (&RequestClient{config: acq.config}).Query()
+// WithClientID tells the query-builder to eager-load the nodes that are connected to
+// the "client_id" edge. The optional arguments are used to configure the query builder of the edge.
+func (acq *AuthorizeCodesQuery) WithClientID(opts ...func(*ClientsQuery)) *AuthorizeCodesQuery {
+	query := (&ClientsClient{config: acq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	acq.withRequestID = query
+	acq.withClientID = query
+	return acq
+}
+
+// WithSessionID tells the query-builder to eager-load the nodes that are connected to
+// the "session_id" edge. The optional arguments are used to configure the query builder of the edge.
+func (acq *AuthorizeCodesQuery) WithSessionID(opts ...func(*SessionQuery)) *AuthorizeCodesQuery {
+	query := (&SessionClient{config: acq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	acq.withSessionID = query
 	return acq
 }
 
@@ -298,12 +334,12 @@ func (acq *AuthorizeCodesQuery) WithRequestID(opts ...func(*RequestQuery)) *Auth
 // Example:
 //
 //	var v []struct {
-//		Active bool `json:"active,omitempty"`
+//		RequestID string `json:"request_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.AuthorizeCodes.Query().
-//		GroupBy(authorizecodes.FieldActive).
+//		GroupBy(authorizecodes.FieldRequestID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (acq *AuthorizeCodesQuery) GroupBy(field string, fields ...string) *AuthorizeCodesGroupBy {
@@ -321,11 +357,11 @@ func (acq *AuthorizeCodesQuery) GroupBy(field string, fields ...string) *Authori
 // Example:
 //
 //	var v []struct {
-//		Active bool `json:"active,omitempty"`
+//		RequestID string `json:"request_id,omitempty"`
 //	}
 //
 //	client.AuthorizeCodes.Query().
-//		Select(authorizecodes.FieldActive).
+//		Select(authorizecodes.FieldRequestID).
 //		Scan(ctx, &v)
 func (acq *AuthorizeCodesQuery) Select(fields ...string) *AuthorizeCodesSelect {
 	acq.ctx.Fields = append(acq.ctx.Fields, fields...)
@@ -371,11 +407,12 @@ func (acq *AuthorizeCodesQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 		nodes       = []*AuthorizeCodes{}
 		withFKs     = acq.withFKs
 		_spec       = acq.querySpec()
-		loadedTypes = [1]bool{
-			acq.withRequestID != nil,
+		loadedTypes = [2]bool{
+			acq.withClientID != nil,
+			acq.withSessionID != nil,
 		}
 	)
-	if acq.withRequestID != nil {
+	if acq.withClientID != nil || acq.withSessionID != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -399,23 +436,29 @@ func (acq *AuthorizeCodesQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := acq.withRequestID; query != nil {
-		if err := acq.loadRequestID(ctx, query, nodes, nil,
-			func(n *AuthorizeCodes, e *Request) { n.Edges.RequestID = e }); err != nil {
+	if query := acq.withClientID; query != nil {
+		if err := acq.loadClientID(ctx, query, nodes, nil,
+			func(n *AuthorizeCodes, e *Clients) { n.Edges.ClientID = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := acq.withSessionID; query != nil {
+		if err := acq.loadSessionID(ctx, query, nodes, nil,
+			func(n *AuthorizeCodes, e *Session) { n.Edges.SessionID = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (acq *AuthorizeCodesQuery) loadRequestID(ctx context.Context, query *RequestQuery, nodes []*AuthorizeCodes, init func(*AuthorizeCodes), assign func(*AuthorizeCodes, *Request)) error {
+func (acq *AuthorizeCodesQuery) loadClientID(ctx context.Context, query *ClientsQuery, nodes []*AuthorizeCodes, init func(*AuthorizeCodes), assign func(*AuthorizeCodes, *Clients)) error {
 	ids := make([]string, 0, len(nodes))
 	nodeids := make(map[string][]*AuthorizeCodes)
 	for i := range nodes {
-		if nodes[i].request_authorize_code == nil {
+		if nodes[i].clients_authorize_code == nil {
 			continue
 		}
-		fk := *nodes[i].request_authorize_code
+		fk := *nodes[i].clients_authorize_code
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -424,7 +467,7 @@ func (acq *AuthorizeCodesQuery) loadRequestID(ctx context.Context, query *Reques
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(request.IDIn(ids...))
+	query.Where(clients.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -432,7 +475,39 @@ func (acq *AuthorizeCodesQuery) loadRequestID(ctx context.Context, query *Reques
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "request_authorize_code" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "clients_authorize_code" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (acq *AuthorizeCodesQuery) loadSessionID(ctx context.Context, query *SessionQuery, nodes []*AuthorizeCodes, init func(*AuthorizeCodes), assign func(*AuthorizeCodes, *Session)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*AuthorizeCodes)
+	for i := range nodes {
+		if nodes[i].session_authorize_code == nil {
+			continue
+		}
+		fk := *nodes[i].session_authorize_code
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(session.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "session_authorize_code" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

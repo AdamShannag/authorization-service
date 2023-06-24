@@ -3,13 +3,18 @@
 package ent
 
 import (
+	"authorization-service/ent/clients"
 	"authorization-service/ent/pkces"
-	"authorization-service/ent/request"
+	"authorization-service/ent/session"
 	"context"
+	"errors"
 	"fmt"
+	"net/url"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"golang.org/x/text/language"
 )
 
 // PKCESCreate is the builder for creating a PKCES entity.
@@ -19,29 +24,104 @@ type PKCESCreate struct {
 	hooks    []Hook
 }
 
+// SetRequestID sets the "request_id" field.
+func (pc *PKCESCreate) SetRequestID(s string) *PKCESCreate {
+	pc.mutation.SetRequestID(s)
+	return pc
+}
+
+// SetRequestedAt sets the "requestedAt" field.
+func (pc *PKCESCreate) SetRequestedAt(t time.Time) *PKCESCreate {
+	pc.mutation.SetRequestedAt(t)
+	return pc
+}
+
+// SetScopes sets the "scopes" field.
+func (pc *PKCESCreate) SetScopes(s []string) *PKCESCreate {
+	pc.mutation.SetScopes(s)
+	return pc
+}
+
+// SetGrantedScopes sets the "granted_scopes" field.
+func (pc *PKCESCreate) SetGrantedScopes(s []string) *PKCESCreate {
+	pc.mutation.SetGrantedScopes(s)
+	return pc
+}
+
+// SetRequestedAudience sets the "requested_audience" field.
+func (pc *PKCESCreate) SetRequestedAudience(s []string) *PKCESCreate {
+	pc.mutation.SetRequestedAudience(s)
+	return pc
+}
+
+// SetGrantedAudience sets the "granted_audience" field.
+func (pc *PKCESCreate) SetGrantedAudience(s []string) *PKCESCreate {
+	pc.mutation.SetGrantedAudience(s)
+	return pc
+}
+
+// SetForm sets the "form" field.
+func (pc *PKCESCreate) SetForm(u url.Values) *PKCESCreate {
+	pc.mutation.SetForm(u)
+	return pc
+}
+
+// SetLang sets the "lang" field.
+func (pc *PKCESCreate) SetLang(l language.Tag) *PKCESCreate {
+	pc.mutation.SetLang(l)
+	return pc
+}
+
+// SetNillableLang sets the "lang" field if the given value is not nil.
+func (pc *PKCESCreate) SetNillableLang(l *language.Tag) *PKCESCreate {
+	if l != nil {
+		pc.SetLang(*l)
+	}
+	return pc
+}
+
 // SetID sets the "id" field.
 func (pc *PKCESCreate) SetID(s string) *PKCESCreate {
 	pc.mutation.SetID(s)
 	return pc
 }
 
-// SetRequestIDID sets the "request_id" edge to the Request entity by ID.
-func (pc *PKCESCreate) SetRequestIDID(id string) *PKCESCreate {
-	pc.mutation.SetRequestIDID(id)
+// SetClientIDID sets the "client_id" edge to the Clients entity by ID.
+func (pc *PKCESCreate) SetClientIDID(id string) *PKCESCreate {
+	pc.mutation.SetClientIDID(id)
 	return pc
 }
 
-// SetNillableRequestIDID sets the "request_id" edge to the Request entity by ID if the given value is not nil.
-func (pc *PKCESCreate) SetNillableRequestIDID(id *string) *PKCESCreate {
+// SetNillableClientIDID sets the "client_id" edge to the Clients entity by ID if the given value is not nil.
+func (pc *PKCESCreate) SetNillableClientIDID(id *string) *PKCESCreate {
 	if id != nil {
-		pc = pc.SetRequestIDID(*id)
+		pc = pc.SetClientIDID(*id)
 	}
 	return pc
 }
 
-// SetRequestID sets the "request_id" edge to the Request entity.
-func (pc *PKCESCreate) SetRequestID(r *Request) *PKCESCreate {
-	return pc.SetRequestIDID(r.ID)
+// SetClientID sets the "client_id" edge to the Clients entity.
+func (pc *PKCESCreate) SetClientID(c *Clients) *PKCESCreate {
+	return pc.SetClientIDID(c.ID)
+}
+
+// SetSessionIDID sets the "session_id" edge to the Session entity by ID.
+func (pc *PKCESCreate) SetSessionIDID(id string) *PKCESCreate {
+	pc.mutation.SetSessionIDID(id)
+	return pc
+}
+
+// SetNillableSessionIDID sets the "session_id" edge to the Session entity by ID if the given value is not nil.
+func (pc *PKCESCreate) SetNillableSessionIDID(id *string) *PKCESCreate {
+	if id != nil {
+		pc = pc.SetSessionIDID(*id)
+	}
+	return pc
+}
+
+// SetSessionID sets the "session_id" edge to the Session entity.
+func (pc *PKCESCreate) SetSessionID(s *Session) *PKCESCreate {
+	return pc.SetSessionIDID(s.ID)
 }
 
 // Mutation returns the PKCESMutation object of the builder.
@@ -78,6 +158,27 @@ func (pc *PKCESCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (pc *PKCESCreate) check() error {
+	if _, ok := pc.mutation.RequestID(); !ok {
+		return &ValidationError{Name: "request_id", err: errors.New(`ent: missing required field "PKCES.request_id"`)}
+	}
+	if _, ok := pc.mutation.RequestedAt(); !ok {
+		return &ValidationError{Name: "requestedAt", err: errors.New(`ent: missing required field "PKCES.requestedAt"`)}
+	}
+	if _, ok := pc.mutation.Scopes(); !ok {
+		return &ValidationError{Name: "scopes", err: errors.New(`ent: missing required field "PKCES.scopes"`)}
+	}
+	if _, ok := pc.mutation.GrantedScopes(); !ok {
+		return &ValidationError{Name: "granted_scopes", err: errors.New(`ent: missing required field "PKCES.granted_scopes"`)}
+	}
+	if _, ok := pc.mutation.RequestedAudience(); !ok {
+		return &ValidationError{Name: "requested_audience", err: errors.New(`ent: missing required field "PKCES.requested_audience"`)}
+	}
+	if _, ok := pc.mutation.GrantedAudience(); !ok {
+		return &ValidationError{Name: "granted_audience", err: errors.New(`ent: missing required field "PKCES.granted_audience"`)}
+	}
+	if _, ok := pc.mutation.Form(); !ok {
+		return &ValidationError{Name: "form", err: errors.New(`ent: missing required field "PKCES.form"`)}
+	}
 	return nil
 }
 
@@ -113,21 +214,70 @@ func (pc *PKCESCreate) createSpec() (*PKCES, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if nodes := pc.mutation.RequestIDIDs(); len(nodes) > 0 {
+	if value, ok := pc.mutation.RequestID(); ok {
+		_spec.SetField(pkces.FieldRequestID, field.TypeString, value)
+		_node.RequestID = value
+	}
+	if value, ok := pc.mutation.RequestedAt(); ok {
+		_spec.SetField(pkces.FieldRequestedAt, field.TypeTime, value)
+		_node.RequestedAt = value
+	}
+	if value, ok := pc.mutation.Scopes(); ok {
+		_spec.SetField(pkces.FieldScopes, field.TypeJSON, value)
+		_node.Scopes = value
+	}
+	if value, ok := pc.mutation.GrantedScopes(); ok {
+		_spec.SetField(pkces.FieldGrantedScopes, field.TypeJSON, value)
+		_node.GrantedScopes = value
+	}
+	if value, ok := pc.mutation.RequestedAudience(); ok {
+		_spec.SetField(pkces.FieldRequestedAudience, field.TypeJSON, value)
+		_node.RequestedAudience = value
+	}
+	if value, ok := pc.mutation.GrantedAudience(); ok {
+		_spec.SetField(pkces.FieldGrantedAudience, field.TypeJSON, value)
+		_node.GrantedAudience = value
+	}
+	if value, ok := pc.mutation.Form(); ok {
+		_spec.SetField(pkces.FieldForm, field.TypeJSON, value)
+		_node.Form = value
+	}
+	if value, ok := pc.mutation.Lang(); ok {
+		_spec.SetField(pkces.FieldLang, field.TypeJSON, value)
+		_node.Lang = value
+	}
+	if nodes := pc.mutation.ClientIDIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   pkces.RequestIDTable,
-			Columns: []string{pkces.RequestIDColumn},
+			Table:   pkces.ClientIDTable,
+			Columns: []string{pkces.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.request_pkce = &nodes[0]
+		_node.clients_pkce = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.SessionIDIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   pkces.SessionIDTable,
+			Columns: []string{pkces.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.session_pkce = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

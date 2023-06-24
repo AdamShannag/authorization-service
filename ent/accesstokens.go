@@ -4,46 +4,83 @@ package ent
 
 import (
 	"authorization-service/ent/accesstokens"
-	"authorization-service/ent/request"
+	"authorization-service/ent/clients"
+	"authorization-service/ent/session"
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"golang.org/x/text/language"
 )
 
 // AccessTokens is the model entity for the AccessTokens schema.
 type AccessTokens struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
+	// RequestID holds the value of the "request_id" field.
+	RequestID string `json:"request_id,omitempty"`
+	// RequestedAt holds the value of the "requestedAt" field.
+	RequestedAt time.Time `json:"requestedAt,omitempty"`
+	// Scopes holds the value of the "scopes" field.
+	Scopes []string `json:"scopes,omitempty"`
+	// GrantedScopes holds the value of the "granted_scopes" field.
+	GrantedScopes []string `json:"granted_scopes,omitempty"`
+	// RequestedAudience holds the value of the "requested_audience" field.
+	RequestedAudience []string `json:"requested_audience,omitempty"`
+	// GrantedAudience holds the value of the "granted_audience" field.
+	GrantedAudience []string `json:"granted_audience,omitempty"`
+	// Form holds the value of the "form" field.
+	Form url.Values `json:"form,omitempty"`
+	// Lang holds the value of the "lang" field.
+	Lang language.Tag `json:"lang,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AccessTokensQuery when eager-loading is set.
 	Edges                AccessTokensEdges `json:"edges"`
-	request_access_token *string
+	clients_access_token *string
+	session_access_token *string
 	selectValues         sql.SelectValues
 }
 
 // AccessTokensEdges holds the relations/edges for other nodes in the graph.
 type AccessTokensEdges struct {
-	// RequestID holds the value of the request_id edge.
-	RequestID *Request `json:"request_id,omitempty"`
+	// ClientID holds the value of the client_id edge.
+	ClientID *Clients `json:"client_id,omitempty"`
+	// SessionID holds the value of the session_id edge.
+	SessionID *Session `json:"session_id,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
-// RequestIDOrErr returns the RequestID value or an error if the edge
+// ClientIDOrErr returns the ClientID value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AccessTokensEdges) RequestIDOrErr() (*Request, error) {
+func (e AccessTokensEdges) ClientIDOrErr() (*Clients, error) {
 	if e.loadedTypes[0] {
-		if e.RequestID == nil {
+		if e.ClientID == nil {
 			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: request.Label}
+			return nil, &NotFoundError{label: clients.Label}
 		}
-		return e.RequestID, nil
+		return e.ClientID, nil
 	}
-	return nil, &NotLoadedError{edge: "request_id"}
+	return nil, &NotLoadedError{edge: "client_id"}
+}
+
+// SessionIDOrErr returns the SessionID value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AccessTokensEdges) SessionIDOrErr() (*Session, error) {
+	if e.loadedTypes[1] {
+		if e.SessionID == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: session.Label}
+		}
+		return e.SessionID, nil
+	}
+	return nil, &NotLoadedError{edge: "session_id"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -51,9 +88,15 @@ func (*AccessTokens) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case accesstokens.FieldID:
+		case accesstokens.FieldScopes, accesstokens.FieldGrantedScopes, accesstokens.FieldRequestedAudience, accesstokens.FieldGrantedAudience, accesstokens.FieldForm, accesstokens.FieldLang:
+			values[i] = new([]byte)
+		case accesstokens.FieldID, accesstokens.FieldRequestID:
 			values[i] = new(sql.NullString)
-		case accesstokens.ForeignKeys[0]: // request_access_token
+		case accesstokens.FieldRequestedAt:
+			values[i] = new(sql.NullTime)
+		case accesstokens.ForeignKeys[0]: // clients_access_token
+			values[i] = new(sql.NullString)
+		case accesstokens.ForeignKeys[1]: // session_access_token
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -76,12 +119,79 @@ func (at *AccessTokens) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				at.ID = value.String
 			}
+		case accesstokens.FieldRequestID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field request_id", values[i])
+			} else if value.Valid {
+				at.RequestID = value.String
+			}
+		case accesstokens.FieldRequestedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field requestedAt", values[i])
+			} else if value.Valid {
+				at.RequestedAt = value.Time
+			}
+		case accesstokens.FieldScopes:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field scopes", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &at.Scopes); err != nil {
+					return fmt.Errorf("unmarshal field scopes: %w", err)
+				}
+			}
+		case accesstokens.FieldGrantedScopes:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field granted_scopes", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &at.GrantedScopes); err != nil {
+					return fmt.Errorf("unmarshal field granted_scopes: %w", err)
+				}
+			}
+		case accesstokens.FieldRequestedAudience:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field requested_audience", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &at.RequestedAudience); err != nil {
+					return fmt.Errorf("unmarshal field requested_audience: %w", err)
+				}
+			}
+		case accesstokens.FieldGrantedAudience:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field granted_audience", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &at.GrantedAudience); err != nil {
+					return fmt.Errorf("unmarshal field granted_audience: %w", err)
+				}
+			}
+		case accesstokens.FieldForm:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field form", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &at.Form); err != nil {
+					return fmt.Errorf("unmarshal field form: %w", err)
+				}
+			}
+		case accesstokens.FieldLang:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field lang", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &at.Lang); err != nil {
+					return fmt.Errorf("unmarshal field lang: %w", err)
+				}
+			}
 		case accesstokens.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field request_access_token", values[i])
+				return fmt.Errorf("unexpected type %T for field clients_access_token", values[i])
 			} else if value.Valid {
-				at.request_access_token = new(string)
-				*at.request_access_token = value.String
+				at.clients_access_token = new(string)
+				*at.clients_access_token = value.String
+			}
+		case accesstokens.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field session_access_token", values[i])
+			} else if value.Valid {
+				at.session_access_token = new(string)
+				*at.session_access_token = value.String
 			}
 		default:
 			at.selectValues.Set(columns[i], values[i])
@@ -96,9 +206,14 @@ func (at *AccessTokens) Value(name string) (ent.Value, error) {
 	return at.selectValues.Get(name)
 }
 
-// QueryRequestID queries the "request_id" edge of the AccessTokens entity.
-func (at *AccessTokens) QueryRequestID() *RequestQuery {
-	return NewAccessTokensClient(at.config).QueryRequestID(at)
+// QueryClientID queries the "client_id" edge of the AccessTokens entity.
+func (at *AccessTokens) QueryClientID() *ClientsQuery {
+	return NewAccessTokensClient(at.config).QueryClientID(at)
+}
+
+// QuerySessionID queries the "session_id" edge of the AccessTokens entity.
+func (at *AccessTokens) QuerySessionID() *SessionQuery {
+	return NewAccessTokensClient(at.config).QuerySessionID(at)
 }
 
 // Update returns a builder for updating this AccessTokens.
@@ -123,7 +238,30 @@ func (at *AccessTokens) Unwrap() *AccessTokens {
 func (at *AccessTokens) String() string {
 	var builder strings.Builder
 	builder.WriteString("AccessTokens(")
-	builder.WriteString(fmt.Sprintf("id=%v", at.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", at.ID))
+	builder.WriteString("request_id=")
+	builder.WriteString(at.RequestID)
+	builder.WriteString(", ")
+	builder.WriteString("requestedAt=")
+	builder.WriteString(at.RequestedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("scopes=")
+	builder.WriteString(fmt.Sprintf("%v", at.Scopes))
+	builder.WriteString(", ")
+	builder.WriteString("granted_scopes=")
+	builder.WriteString(fmt.Sprintf("%v", at.GrantedScopes))
+	builder.WriteString(", ")
+	builder.WriteString("requested_audience=")
+	builder.WriteString(fmt.Sprintf("%v", at.RequestedAudience))
+	builder.WriteString(", ")
+	builder.WriteString("granted_audience=")
+	builder.WriteString(fmt.Sprintf("%v", at.GrantedAudience))
+	builder.WriteString(", ")
+	builder.WriteString("form=")
+	builder.WriteString(fmt.Sprintf("%v", at.Form))
+	builder.WriteString(", ")
+	builder.WriteString("lang=")
+	builder.WriteString(fmt.Sprintf("%v", at.Lang))
 	builder.WriteByte(')')
 	return builder.String()
 }

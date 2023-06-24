@@ -3,8 +3,12 @@
 package ent
 
 import (
+	"authorization-service/ent/accesstokens"
+	"authorization-service/ent/authorizecodes"
 	"authorization-service/ent/clients"
-	"authorization-service/ent/request"
+	"authorization-service/ent/idsessions"
+	"authorization-service/ent/pkces"
+	"authorization-service/ent/refreshtokens"
 	"context"
 	"errors"
 	"fmt"
@@ -82,19 +86,79 @@ func (cc *ClientsCreate) SetID(s string) *ClientsCreate {
 	return cc
 }
 
-// AddRequestIDs adds the "requests" edge to the Request entity by IDs.
-func (cc *ClientsCreate) AddRequestIDs(ids ...string) *ClientsCreate {
-	cc.mutation.AddRequestIDs(ids...)
+// AddAccessTokenIDs adds the "access_token" edge to the AccessTokens entity by IDs.
+func (cc *ClientsCreate) AddAccessTokenIDs(ids ...string) *ClientsCreate {
+	cc.mutation.AddAccessTokenIDs(ids...)
 	return cc
 }
 
-// AddRequests adds the "requests" edges to the Request entity.
-func (cc *ClientsCreate) AddRequests(r ...*Request) *ClientsCreate {
+// AddAccessToken adds the "access_token" edges to the AccessTokens entity.
+func (cc *ClientsCreate) AddAccessToken(a ...*AccessTokens) *ClientsCreate {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cc.AddAccessTokenIDs(ids...)
+}
+
+// AddAuthorizeCodeIDs adds the "authorize_code" edge to the AuthorizeCodes entity by IDs.
+func (cc *ClientsCreate) AddAuthorizeCodeIDs(ids ...string) *ClientsCreate {
+	cc.mutation.AddAuthorizeCodeIDs(ids...)
+	return cc
+}
+
+// AddAuthorizeCode adds the "authorize_code" edges to the AuthorizeCodes entity.
+func (cc *ClientsCreate) AddAuthorizeCode(a ...*AuthorizeCodes) *ClientsCreate {
+	ids := make([]string, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return cc.AddAuthorizeCodeIDs(ids...)
+}
+
+// AddRefreshTokenIDs adds the "refresh_token" edge to the RefreshTokens entity by IDs.
+func (cc *ClientsCreate) AddRefreshTokenIDs(ids ...string) *ClientsCreate {
+	cc.mutation.AddRefreshTokenIDs(ids...)
+	return cc
+}
+
+// AddRefreshToken adds the "refresh_token" edges to the RefreshTokens entity.
+func (cc *ClientsCreate) AddRefreshToken(r ...*RefreshTokens) *ClientsCreate {
 	ids := make([]string, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
-	return cc.AddRequestIDs(ids...)
+	return cc.AddRefreshTokenIDs(ids...)
+}
+
+// AddIDSessionIDs adds the "id_session" edge to the IDSessions entity by IDs.
+func (cc *ClientsCreate) AddIDSessionIDs(ids ...string) *ClientsCreate {
+	cc.mutation.AddIDSessionIDs(ids...)
+	return cc
+}
+
+// AddIDSession adds the "id_session" edges to the IDSessions entity.
+func (cc *ClientsCreate) AddIDSession(i ...*IDSessions) *ClientsCreate {
+	ids := make([]string, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return cc.AddIDSessionIDs(ids...)
+}
+
+// AddPkceIDs adds the "pkce" edge to the PKCES entity by IDs.
+func (cc *ClientsCreate) AddPkceIDs(ids ...string) *ClientsCreate {
+	cc.mutation.AddPkceIDs(ids...)
+	return cc
+}
+
+// AddPkce adds the "pkce" edges to the PKCES entity.
+func (cc *ClientsCreate) AddPkce(p ...*PKCES) *ClientsCreate {
+	ids := make([]string, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return cc.AddPkceIDs(ids...)
 }
 
 // Mutation returns the ClientsMutation object of the builder.
@@ -216,15 +280,79 @@ func (cc *ClientsCreate) createSpec() (*Clients, *sqlgraph.CreateSpec) {
 		_spec.SetField(clients.FieldPublic, field.TypeBool, value)
 		_node.Public = value
 	}
-	if nodes := cc.mutation.RequestsIDs(); len(nodes) > 0 {
+	if nodes := cc.mutation.AccessTokenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   clients.RequestsTable,
-			Columns: []string{clients.RequestsColumn},
+			Table:   clients.AccessTokenTable,
+			Columns: []string{clients.AccessTokenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(accesstokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.AuthorizeCodeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.AuthorizeCodeTable,
+			Columns: []string{clients.AuthorizeCodeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authorizecodes.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.RefreshTokenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.RefreshTokenTable,
+			Columns: []string{clients.RefreshTokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtokens.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.IDSessionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.IDSessionTable,
+			Columns: []string{clients.IDSessionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(idsessions.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.PkceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clients.PkceTable,
+			Columns: []string{clients.PkceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pkces.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

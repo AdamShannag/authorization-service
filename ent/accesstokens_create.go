@@ -4,12 +4,17 @@ package ent
 
 import (
 	"authorization-service/ent/accesstokens"
-	"authorization-service/ent/request"
+	"authorization-service/ent/clients"
+	"authorization-service/ent/session"
 	"context"
+	"errors"
 	"fmt"
+	"net/url"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"golang.org/x/text/language"
 )
 
 // AccessTokensCreate is the builder for creating a AccessTokens entity.
@@ -19,29 +24,104 @@ type AccessTokensCreate struct {
 	hooks    []Hook
 }
 
+// SetRequestID sets the "request_id" field.
+func (atc *AccessTokensCreate) SetRequestID(s string) *AccessTokensCreate {
+	atc.mutation.SetRequestID(s)
+	return atc
+}
+
+// SetRequestedAt sets the "requestedAt" field.
+func (atc *AccessTokensCreate) SetRequestedAt(t time.Time) *AccessTokensCreate {
+	atc.mutation.SetRequestedAt(t)
+	return atc
+}
+
+// SetScopes sets the "scopes" field.
+func (atc *AccessTokensCreate) SetScopes(s []string) *AccessTokensCreate {
+	atc.mutation.SetScopes(s)
+	return atc
+}
+
+// SetGrantedScopes sets the "granted_scopes" field.
+func (atc *AccessTokensCreate) SetGrantedScopes(s []string) *AccessTokensCreate {
+	atc.mutation.SetGrantedScopes(s)
+	return atc
+}
+
+// SetRequestedAudience sets the "requested_audience" field.
+func (atc *AccessTokensCreate) SetRequestedAudience(s []string) *AccessTokensCreate {
+	atc.mutation.SetRequestedAudience(s)
+	return atc
+}
+
+// SetGrantedAudience sets the "granted_audience" field.
+func (atc *AccessTokensCreate) SetGrantedAudience(s []string) *AccessTokensCreate {
+	atc.mutation.SetGrantedAudience(s)
+	return atc
+}
+
+// SetForm sets the "form" field.
+func (atc *AccessTokensCreate) SetForm(u url.Values) *AccessTokensCreate {
+	atc.mutation.SetForm(u)
+	return atc
+}
+
+// SetLang sets the "lang" field.
+func (atc *AccessTokensCreate) SetLang(l language.Tag) *AccessTokensCreate {
+	atc.mutation.SetLang(l)
+	return atc
+}
+
+// SetNillableLang sets the "lang" field if the given value is not nil.
+func (atc *AccessTokensCreate) SetNillableLang(l *language.Tag) *AccessTokensCreate {
+	if l != nil {
+		atc.SetLang(*l)
+	}
+	return atc
+}
+
 // SetID sets the "id" field.
 func (atc *AccessTokensCreate) SetID(s string) *AccessTokensCreate {
 	atc.mutation.SetID(s)
 	return atc
 }
 
-// SetRequestIDID sets the "request_id" edge to the Request entity by ID.
-func (atc *AccessTokensCreate) SetRequestIDID(id string) *AccessTokensCreate {
-	atc.mutation.SetRequestIDID(id)
+// SetClientIDID sets the "client_id" edge to the Clients entity by ID.
+func (atc *AccessTokensCreate) SetClientIDID(id string) *AccessTokensCreate {
+	atc.mutation.SetClientIDID(id)
 	return atc
 }
 
-// SetNillableRequestIDID sets the "request_id" edge to the Request entity by ID if the given value is not nil.
-func (atc *AccessTokensCreate) SetNillableRequestIDID(id *string) *AccessTokensCreate {
+// SetNillableClientIDID sets the "client_id" edge to the Clients entity by ID if the given value is not nil.
+func (atc *AccessTokensCreate) SetNillableClientIDID(id *string) *AccessTokensCreate {
 	if id != nil {
-		atc = atc.SetRequestIDID(*id)
+		atc = atc.SetClientIDID(*id)
 	}
 	return atc
 }
 
-// SetRequestID sets the "request_id" edge to the Request entity.
-func (atc *AccessTokensCreate) SetRequestID(r *Request) *AccessTokensCreate {
-	return atc.SetRequestIDID(r.ID)
+// SetClientID sets the "client_id" edge to the Clients entity.
+func (atc *AccessTokensCreate) SetClientID(c *Clients) *AccessTokensCreate {
+	return atc.SetClientIDID(c.ID)
+}
+
+// SetSessionIDID sets the "session_id" edge to the Session entity by ID.
+func (atc *AccessTokensCreate) SetSessionIDID(id string) *AccessTokensCreate {
+	atc.mutation.SetSessionIDID(id)
+	return atc
+}
+
+// SetNillableSessionIDID sets the "session_id" edge to the Session entity by ID if the given value is not nil.
+func (atc *AccessTokensCreate) SetNillableSessionIDID(id *string) *AccessTokensCreate {
+	if id != nil {
+		atc = atc.SetSessionIDID(*id)
+	}
+	return atc
+}
+
+// SetSessionID sets the "session_id" edge to the Session entity.
+func (atc *AccessTokensCreate) SetSessionID(s *Session) *AccessTokensCreate {
+	return atc.SetSessionIDID(s.ID)
 }
 
 // Mutation returns the AccessTokensMutation object of the builder.
@@ -78,6 +158,27 @@ func (atc *AccessTokensCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (atc *AccessTokensCreate) check() error {
+	if _, ok := atc.mutation.RequestID(); !ok {
+		return &ValidationError{Name: "request_id", err: errors.New(`ent: missing required field "AccessTokens.request_id"`)}
+	}
+	if _, ok := atc.mutation.RequestedAt(); !ok {
+		return &ValidationError{Name: "requestedAt", err: errors.New(`ent: missing required field "AccessTokens.requestedAt"`)}
+	}
+	if _, ok := atc.mutation.Scopes(); !ok {
+		return &ValidationError{Name: "scopes", err: errors.New(`ent: missing required field "AccessTokens.scopes"`)}
+	}
+	if _, ok := atc.mutation.GrantedScopes(); !ok {
+		return &ValidationError{Name: "granted_scopes", err: errors.New(`ent: missing required field "AccessTokens.granted_scopes"`)}
+	}
+	if _, ok := atc.mutation.RequestedAudience(); !ok {
+		return &ValidationError{Name: "requested_audience", err: errors.New(`ent: missing required field "AccessTokens.requested_audience"`)}
+	}
+	if _, ok := atc.mutation.GrantedAudience(); !ok {
+		return &ValidationError{Name: "granted_audience", err: errors.New(`ent: missing required field "AccessTokens.granted_audience"`)}
+	}
+	if _, ok := atc.mutation.Form(); !ok {
+		return &ValidationError{Name: "form", err: errors.New(`ent: missing required field "AccessTokens.form"`)}
+	}
 	return nil
 }
 
@@ -113,21 +214,70 @@ func (atc *AccessTokensCreate) createSpec() (*AccessTokens, *sqlgraph.CreateSpec
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if nodes := atc.mutation.RequestIDIDs(); len(nodes) > 0 {
+	if value, ok := atc.mutation.RequestID(); ok {
+		_spec.SetField(accesstokens.FieldRequestID, field.TypeString, value)
+		_node.RequestID = value
+	}
+	if value, ok := atc.mutation.RequestedAt(); ok {
+		_spec.SetField(accesstokens.FieldRequestedAt, field.TypeTime, value)
+		_node.RequestedAt = value
+	}
+	if value, ok := atc.mutation.Scopes(); ok {
+		_spec.SetField(accesstokens.FieldScopes, field.TypeJSON, value)
+		_node.Scopes = value
+	}
+	if value, ok := atc.mutation.GrantedScopes(); ok {
+		_spec.SetField(accesstokens.FieldGrantedScopes, field.TypeJSON, value)
+		_node.GrantedScopes = value
+	}
+	if value, ok := atc.mutation.RequestedAudience(); ok {
+		_spec.SetField(accesstokens.FieldRequestedAudience, field.TypeJSON, value)
+		_node.RequestedAudience = value
+	}
+	if value, ok := atc.mutation.GrantedAudience(); ok {
+		_spec.SetField(accesstokens.FieldGrantedAudience, field.TypeJSON, value)
+		_node.GrantedAudience = value
+	}
+	if value, ok := atc.mutation.Form(); ok {
+		_spec.SetField(accesstokens.FieldForm, field.TypeJSON, value)
+		_node.Form = value
+	}
+	if value, ok := atc.mutation.Lang(); ok {
+		_spec.SetField(accesstokens.FieldLang, field.TypeJSON, value)
+		_node.Lang = value
+	}
+	if nodes := atc.mutation.ClientIDIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   accesstokens.RequestIDTable,
-			Columns: []string{accesstokens.RequestIDColumn},
+			Table:   accesstokens.ClientIDTable,
+			Columns: []string{accesstokens.ClientIDColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(clients.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.request_access_token = &nodes[0]
+		_node.clients_access_token = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := atc.mutation.SessionIDIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   accesstokens.SessionIDTable,
+			Columns: []string{accesstokens.SessionIDColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.session_access_token = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
